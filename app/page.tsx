@@ -1,7 +1,30 @@
+'use client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { createGame } from "@/hooks/game";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter()
+
+  const handleCreateRoom = async () => {
+    try {
+      const roomData = await createGame()
+      console.log("Room created:", roomData);
+      router.push(`/battle/${roomData.game_code}`);
+    } catch (error) {
+      console.error("Error creating room:", error);
+    }
+  }
+
   return (
     <main className="flex flex-col gap-6 min-h-screen justify-center items-center bg-[url('/battleship-background.jpg')] bg-cover bg-center">
       <h1 className="text-6xl text-sky-600 uppercase font-bold">Battleship game</h1>
@@ -9,9 +32,23 @@ export default function Home() {
         <Input placeholder="Enter your nickname" className="w-64 bg-white" />
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="default">Create a Game</Button>
+        <Button onClick={handleCreateRoom} variant="default">Create a Game</Button>
         <span>--- or ---</span>
-        <Button variant="outline">Join a Game</Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Join a Game</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Join a game</DialogTitle>
+              <DialogDescription>
+                Enter the game code provided by the host to join an existing game.
+              </DialogDescription>
+            </DialogHeader>
+            <Input placeholder="Enter the invitation code" />
+            <Button className="w-full">Join Game</Button>
+          </DialogContent>
+        </Dialog>
       </div>
     </main>
   );
