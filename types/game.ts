@@ -3,6 +3,8 @@ export interface IGameData {
     game_code: string
     player1_id: string
     player2_id: string | null
+    player1_name: string | null
+    player2_name: string | null
     player1_board: null
     player2_board: null
     player1_shots: []

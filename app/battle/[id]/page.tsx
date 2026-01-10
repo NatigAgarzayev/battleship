@@ -1,9 +1,8 @@
 'use client'
 import { use, useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { fetchGame } from '@/hooks/game'
 import { IGameData } from '@/types/game'
-import { GameGrid } from '@/components/functional/GameGrid'
+import GameBoard from '@/components/functional/GameBoard'
 
 export default function Battle({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
@@ -60,15 +59,10 @@ export default function Battle({ params }: { params: Promise<{ id: string }> }) 
 
     if (!gameState) return <div>Game not found</div>
 
-    const handleCellAttack = (row: number, col: number) => {
-        console.log(`Attacking cell at row ${row}, col ${col}`)
-        // Implement attack logic here
-    }
-
     return (
         <div className="bg-[url('/battleship-background.jpg')] min-h-screen bg-cover flex flex-col items-center justify-center p-4">
             <h1 className="text-4xl font-bold mb-8 text-blue-800">Battleship Game: {gameState.game_code}</h1>
-            <GameGrid onCellClick={handleCellAttack} />
+            <GameBoard gameState={gameState} />
         </div>
     )
 }
