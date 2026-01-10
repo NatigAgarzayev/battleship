@@ -7,9 +7,8 @@ export const fetchGame = async (gameCode: string) => {
         .select('*')
         .eq('game_code', gameCode)
         .single()
-    if (!error) {
-        return data
-    }
+
+    return data
 }
 
 // Create game

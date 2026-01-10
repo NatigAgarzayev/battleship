@@ -11,17 +11,22 @@ import {
 } from "@/components/ui/dialog"
 import { createGame } from "@/hooks/game";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Home() {
   const router = useRouter()
+  const [creatingRoom, setCreatingRoom] = useState(false)
 
   const handleCreateRoom = async () => {
     try {
+      setCreatingRoom(true);
       const roomData = await createGame()
       console.log("Room created:", roomData);
       router.push(`/battle/${roomData.game_code}`);
     } catch (error) {
       console.error("Error creating room:", error);
+    } finally {
+      setCreatingRoom(false);
     }
   }
 
@@ -32,7 +37,9 @@ export default function Home() {
         <Input placeholder="Enter your nickname" className="w-64 bg-white" />
       </div>
       <div className="flex items-center gap-2">
-        <Button onClick={handleCreateRoom} variant="default">Create a Game</Button>
+        <Button disabled={creatingRoom} onClick={handleCreateRoom} variant="default">
+          {creatingRoom ? 'Creating...' : 'Create Room'}
+        </Button>
         <span>--- or ---</span>
         <Dialog>
           <DialogTrigger asChild>
