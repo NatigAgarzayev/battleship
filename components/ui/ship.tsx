@@ -11,6 +11,6 @@ export default function ship({ length }: { length: ShipType['length'] }) {
     }[length]
 
     return (
-        <div className={`bg-gray-800 h-4 ${widthClass}`}></div>
+        <div draggable="true" className={`bg-gray-800 h-4 ${widthClass}`}></div>
     )
 }
