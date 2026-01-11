@@ -5,8 +5,16 @@ import { DndContext } from '@dnd-kit/core'
 
 export default function GameBoard({ gameState }: { gameState: IGameData }) {
 
+    const handleDragStart = (event: any) => {
+        console.log("Drag started", event)
+    }
+
+    const handleDragEnd = (event: any) => {
+        console.log("Drag ended", event)
+    }
+
     return (
-        <DndContext>
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div>
                 {gameState.player1_id &&
                     <GameGrid playerId={gameState.player1_id} playerName={gameState.player1_name} />

@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import GameShips from './GameShips'
+import GridCell from './GridCell'
+import { useDndMonitor } from '@dnd-kit/core'
 
 const SIZE = 10
 
@@ -12,11 +14,30 @@ interface GameGridProps {
 }
 // Game Grid component
 export default function GameGrid({ ships = [], shots = [], isInteractive = true, playerId, playerName }: GameGridProps) {
-
+    const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
     const handleCellAttack = (row: number, col: number) => {
         console.log(`Attacking cell at row ${row}, col ${col}`)
         // Implement attack logic here
     }
+
+    useDndMonitor({
+        onDragOver(event) {
+            const { collisions } = event
+
+            if (collisions && collisions.length > 0) {
+                const cellIds = new Set(collisions.map(c => c.id as string))
+                setHoveredCells(cellIds)
+            } else {
+                setHoveredCells(new Set())
+            }
+        },
+        onDragEnd() {
+            setHoveredCells(new Set())
+        },
+        onDragCancel() {
+            setHoveredCells(new Set())
+        }
+    })
 
 
     return (
@@ -42,33 +63,11 @@ export default function GameGrid({ ships = [], shots = [], isInteractive = true,
                         {String.fromCharCode(65 + row)}
                     </div>
 
-                    {/* Grid cells */}
-                    {Array.from({ length: SIZE }, (_, col) => {
-                        const hasShip = ships.some(s => s.row === row && s.col === col)
-                        const shot = shots.find(s => s.row === row && s.col === col)
-                        const isHit = shot && hasShip
-                        const isMiss = shot && !hasShip
 
-                        return (
-                            <button
-                                key={col}
-                                onClick={() => isInteractive && handleCellAttack(row, col)}
-                                disabled={!isInteractive || !!shot}
-                                className={`
-                  w-8 h-8 border-2 border-blue-400 
-                  transition-all duration-200
-                  ${isInteractive && !shot ? 'hover:bg-blue-200 cursor-pointer' : ''}
-                  ${hasShip ? 'bg-gray-700' : 'bg-blue-50'}
-                  ${isHit ? 'bg-red-500' : ''}
-                  ${isMiss ? 'bg-gray-300' : ''}
-                  ${!isInteractive ? 'cursor-not-allowed' : ''}
-                `}
-                            >
-                                {isHit && '💥'}
-                                {isMiss && '●'}
-                            </button>
-                        )
-                    })}
+                    {/* Grid cells */}
+                    {Array.from({ length: SIZE }, (_, col) => (
+                        <GridCell isOver={hoveredCells.has(`${row}-${col}`)} key={col} col={col} row={row} isInteractive={isInteractive} handleCellAttack={handleCellAttack} />
+                    ))}
                 </div>
             ))}
         </div>
