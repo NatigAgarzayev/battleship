@@ -15,3 +15,14 @@ export interface IGameData {
     created_at: string
     updated_at: string
 }
+
+interface IShipInfo {
+    id: string
+    name: string
+    length: number
+}
+
+export interface IShipsLocation {
+    ship_info: IShipInfo
+    ship_coordinates: string[]
+}
