@@ -11,6 +11,7 @@ interface GameGridProps {
     playerName: string | null
     isInteractive?: boolean
 }
+
 // Game Grid component
 export default function GameGrid({ isInteractive = true, playerId, playerName }: GameGridProps) {
     const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
@@ -19,6 +20,52 @@ export default function GameGrid({ isInteractive = true, playerId, playerName }:
     const handleCellAttack = (row: number, col: number) => {
         console.log(`Attacking cell at row ${row}, col ${col}`)
         // Implement attack logic here
+    }
+
+    // Helper function to generate ship coordinates
+    const generateShipCells = (startRow: number, startCol: number, length: number): string[] => {
+        const cells: string[] = []
+        for (let i = 0; i < length; i++) {
+            cells.push(`${startRow}-${startCol + i}`)
+        }
+        return cells
+    }
+
+    // Helper function to validate ship placement
+    const isValidPlacement = (cells: string[]): boolean => {
+        // Check collision with existing ships
+        const hasCollision = cells.some(cell =>
+            ships.some(shipLoc => shipLoc.ship_coordinates.includes(cell))
+        )
+
+        // Check if ship goes out of bounds
+        const lastCell = cells[cells.length - 1]
+        const [row, col] = lastCell.split('-').map(Number)
+        const outOfBounds = col >= SIZE || row >= SIZE
+
+        // Check if there's a 1-cell buffer around the ship
+        const hasBufferViolation = cells.some(cell => {
+            const [cellRow, cellCol] = cell.split('-').map(Number)
+
+            // Check all 8 surrounding cells (and the cell itself)
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    const checkRow = cellRow + dr
+                    const checkCol = cellCol + dc
+                    const checkCell = `${checkRow}-${checkCol}`
+
+                    // If any surrounding cell has a ship, it's too close
+                    const hasSurroundingShip = ships.some(shipLoc =>
+                        shipLoc.ship_coordinates.includes(checkCell)
+                    )
+
+                    if (hasSurroundingShip) return true
+                }
+            }
+            return false
+        })
+
+        return !hasCollision && !outOfBounds && !hasBufferViolation
     }
 
     useDndMonitor({
@@ -38,13 +85,15 @@ export default function GameGrid({ isInteractive = true, playerId, playerName }:
                 return
             }
 
-            // Generate horizontal ship positions from the hovered cell
-            const validCells: string[] = []
-            for (let i = 0; i < ship.length; i++) {
-                validCells.push(`${overData.row}-${overData.col + i}`)
-            }
+            // Generate ship cells
+            const validCells = generateShipCells(overData.row, overData.col, ship.length)
 
-            setHoveredCells(new Set(validCells))
+            // Only highlight if valid placement
+            if (isValidPlacement(validCells)) {
+                setHoveredCells(new Set(validCells))
+            } else {
+                setHoveredCells(new Set())
+            }
         },
         onDragEnd(event) {
             const { active, over } = event
@@ -62,20 +111,22 @@ export default function GameGrid({ isInteractive = true, playerId, playerName }:
                 return
             }
 
-            // Generate horizontal ship positions from the hovered cell
-            const validCells: string[] = []
-            for (let i = 0; i < ship.length; i++) {
-                validCells.push(`${overData.row}-${overData.col + i}`)
-            }
+            // Generate ship cells
+            const validCells = generateShipCells(overData.row, overData.col, ship.length)
 
-            setShips([...ships, {
-                ship_info: {
-                    id: ship.id,
-                    name: ship.name,
-                    length: ship.length
-                },
-                ship_coordinates: validCells
-            }])
+            // Only place ship if valid
+            if (isValidPlacement(validCells)) {
+                setShips([...ships, {
+                    ship_info: {
+                        id: ship.id,
+                        name: ship.name,
+                        length: ship.length
+                    },
+                    ship_coordinates: validCells
+                }])
+            } else {
+                console.log('Invalid placement: collision or out of bounds')
+            }
 
             setHoveredCells(new Set())
         },

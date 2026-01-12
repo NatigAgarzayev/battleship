@@ -1,4 +1,4 @@
-import { useDndMonitor, useDroppable } from '@dnd-kit/core'
+import { useDroppable } from '@dnd-kit/core'
 import React, { useState } from 'react'
 
 export default function GridCell({ isThereShip, isOver, row, col, isInteractive, handleCellAttack }: { isThereShip: boolean, isOver: boolean, row: number, col: number, isInteractive: boolean, handleCellAttack: (row: number, col: number) => void }) {
