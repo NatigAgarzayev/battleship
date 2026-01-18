@@ -1,6 +1,7 @@
 import { SHIP_TYPES } from '@/constants/ships'
 import React from 'react'
 import Ship from '../ui/ship'
+import { Button } from '../ui/button'
 
 interface PlacedShip {
     ship_info: {
@@ -13,9 +14,11 @@ interface PlacedShip {
 
 export default function GameShips({
     placedShips,
+    isReady,
     onRemoveShip
 }: {
-    placedShips: PlacedShip[]
+    placedShips: PlacedShip[],
+    isReady: boolean,
     onRemoveShip: (shipId: string) => void
 }) {
     return (
@@ -31,12 +34,13 @@ export default function GameShips({
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500">({ship.length} cells)</span>
                             {isPlaced && (
-                                <button
+                                <Button
+                                    variant="destructive"
+                                    disabled={!isPlaced || isReady}
                                     onClick={() => onRemoveShip(ship.id)}
-                                    className="text-red-500 hover:text-red-700 text-xs"
                                 >
                                     Remove
-                                </button>
+                                </Button>
                             )}
                         </div>
                     </div>

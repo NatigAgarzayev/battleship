@@ -2,20 +2,28 @@ import React, { useState } from 'react'
 import GameShips from './GameShips'
 import GridCell from './GridCell'
 import { useDndMonitor } from '@dnd-kit/core'
-import { IShipsLocation } from '@/types/game'
+import { IGameData, IShipsLocation } from '@/types/game'
+import { Button } from '../ui/button'
+import { setPlayerReady } from '@/hooks/game'
 
 const SIZE = 10
 
 interface GameGridProps {
+    gameCode: string
     playerId: string
+    playerShips: IShipsLocation[] | null
     playerName: string | null
-    isInteractive?: boolean
+    isReady: boolean
+    isYourBoard: boolean
+    status: IGameData['status']
 }
 
 // Game Grid component
-export default function GameGrid({ isInteractive = true, playerId, playerName }: GameGridProps) {
+export default function GameGrid({ gameCode, playerShips, playerId, playerName, isReady, isYourBoard, status }: GameGridProps) {
     const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
-    const [ships, setShips] = useState<IShipsLocation[]>([])
+    const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
+    const showShipPlacement = isYourBoard && !isReady && status === 'setup'
+    const showShips = isYourBoard
 
     const handleCellAttack = (row: number, col: number) => {
         console.log(`Attacking cell at row ${row}, col ${col}`)
@@ -139,12 +147,30 @@ export default function GameGrid({ isInteractive = true, playerId, playerName }:
         setShips(ships.filter(shipLoc => shipLoc.ship_info.id !== shipId))
     }
 
+    const handleSetPlayerReady = async () => {
+        try {
+            const res = await setPlayerReady(gameCode, playerId, ships)
+            console.log("Player set to ready:", res)
+        } catch (error) {
+            console.error("Error setting player ready:", error)
+        }
+    }
+
+
+    console.log("SDA", status)
+
     return (
         <div className="inline-block">
-            Player: {playerName ? playerName : "Unknown"} (ID: {playerId})
-            {/* Game Ships list */}
-            <GameShips placedShips={ships} onRemoveShip={handleRemoveShip} />
-
+            Player: {playerName ? playerName : "Unknown"} (ID: {playerId}) <br />
+            {/* Only show ship placement controls on your board during setup */}
+            {showShipPlacement && (
+                <>
+                    <Button disabled={ships.length !== 5} onClick={handleSetPlayerReady}>
+                        I am ready
+                    </Button>
+                    <GameShips isReady={isReady} placedShips={ships} onRemoveShip={handleRemoveShip} />
+                </>
+            )}
             <div className="flex">
                 {/* Left side - row labels */}
                 <div className="flex flex-col">
@@ -174,12 +200,11 @@ export default function GameGrid({ isInteractive = true, playerId, playerName }:
                         <div key={row} className="grid grid-cols-10">
                             {Array.from({ length: SIZE }, (_, col) => (
                                 <GridCell
-                                    isThereShip={ships.some(shipLoc => shipLoc.ship_coordinates.includes(`${row}-${col}`))}
+                                    isThereShip={showShips && ships.some(shipLoc => shipLoc.ship_coordinates.includes(`${row}-${col}`))}
                                     isOver={hoveredCells.has(`${row}-${col}`)}
                                     key={col}
                                     col={col}
                                     row={row}
-                                    isInteractive={isInteractive}
                                     handleCellAttack={handleCellAttack}
                                 />
                             ))}

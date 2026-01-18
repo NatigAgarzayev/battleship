@@ -14,22 +14,34 @@ export const fetchGame = async (gameCode: string) => {
 }
 
 // Create game
-export const createGame = async (playerName?: string) => {
+export const createGame = async (playerName: string | undefined, gameType: 'pvp' | 'bot') => {
     const gameCode = Math.random().toString(36).substring(2, 8).toUpperCase()
     const playerId = 'player-' + Math.random().toString(36).substring(2, 15)
 
     localStorage.setItem('currentPlayerId', playerId)
 
+    const gameData: any = {
+        game_code: gameCode,
+        player1_id: playerId,
+        player1_name: playerName || null,
+        status: 'setup', // Both players setting up
+        game_type: gameType,
+        player1_ready: false,
+        player2_ready: false
+    }
+
+    // If bot mode, create bot player immediately
+    if (gameType === 'bot') {
+        const botId = 'bot-' + Math.random().toString(36).substring(2, 15)
+        gameData.player2_id = botId
+        gameData.player2_name = 'Bot'
+        gameData.player2_ships = generateBotShips()
+        gameData.player2_ready = true // Bot is always ready
+    }
+
     const { data, error } = await supabase
         .from('games')
-        .insert({
-            game_code: gameCode,
-            player1_id: playerId,
-            player1_name: playerName || null,
-            status: 'setup', // Player 1 positioning ships
-            player1_ready: false,
-            player2_ready: false
-        })
+        .insert(gameData)
         .select()
         .single()
 
@@ -43,22 +55,42 @@ export const joinGame = async (gameCode: string, playerName?: string) => {
 
     localStorage.setItem('currentPlayerId', playerId)
 
+    // Check if game exists and is joinable
+    const { data: existingGame, error: fetchError } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (fetchError || !existingGame) {
+        throw new Error('Game not found')
+    }
+
+    if (existingGame.game_type !== 'pvp') {
+        throw new Error('Cannot join a bot game')
+    }
+
+    if (existingGame.player2_id) {
+        throw new Error('Game is already full')
+    }
+
+    // Join the game
     const { data, error } = await supabase
         .from('games')
         .update({
             player2_id: playerId,
             player2_name: playerName || null,
-            status: 'ready', // Both players now in game, but P2 needs to set up
-            player2_ready: false // Explicitly set P2 as not ready
+            player2_ready: false
         })
         .eq('game_code', gameCode)
-        .eq('status', 'waiting') // Only join if waiting
+        .is('player2_id', null) // Ensure no one else joined
         .select()
         .single()
 
     if (error) throw error
     return { game: data, playerId }
 }
+
 // Update game (make a move)
 export const makeMove = async (gameCode: string, updates: any) => {
     const { data, error } = await supabase
@@ -89,7 +121,12 @@ export const setPlayerReady = async (gameCode: string, playerId: string, ships: 
     if (isPlayer1) {
         updates.player1_ships = ships
         updates.player1_ready = true
-        // Don't change status yet - wait for PvP/Bot choice
+
+        // If both ready, start game
+        if (game.player2_ready) {
+            updates.status = 'active'
+            updates.current_turn = game.player1_id
+        }
     } else {
         updates.player2_ships = ships
         updates.player2_ready = true
