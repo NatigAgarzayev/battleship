@@ -39,7 +39,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
 
                 {/* Game Over Banner */}
                 {gameState.status === 'finished' && (
-                    <div className="mb-8 p-6 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-2xl text-center shadow-xl">
+                    <div className="mb-8 p-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl text-center shadow-xl">
                         <h2 className="text-3xl font-black mb-2">
                             {(isPlayer1 && gameState.winner === gameState.player1_id) ||
                                 (isPlayer2 && gameState.winner === gameState.player2_id)
@@ -55,13 +55,9 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                     </div>
                 )}
 
-                {/* Game Grids */}
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-start">
-                    {/* Your Board */}
+                {/* Setup Phase - Single Board Centered */}
+                {gameState.status === 'setup' && (
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">
-                            Your Waters
-                        </h2>
                         {isPlayer1 ? (
                             <GameGrid
                                 gameCode={gameState.game_code}
@@ -88,9 +84,44 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             />
                         )}
                     </div>
+                )}
 
-                    {/* Opponent's Board */}
-                    {gameState.status === "active" && (
+                {/* Active Phase - Two Boards Side by Side */}
+                {gameState.status === 'active' && (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* Your Board - Left */}
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-4">
+                                Your Waters
+                            </h2>
+                            {isPlayer1 ? (
+                                <GameGrid
+                                    gameCode={gameState.game_code}
+                                    playerId={gameState.player1_id}
+                                    playerShips={gameState.player1_ships}
+                                    playerName={gameState.player1_name}
+                                    isReady={gameState.player1_ready}
+                                    isYourBoard={true}
+                                    status={gameState.status}
+                                    isYourTurn={gameState.current_turn === currentPlayerId}
+                                    shots={opponentShots}
+                                />
+                            ) : (
+                                <GameGrid
+                                    gameCode={gameState.game_code}
+                                    playerId={gameState.player2_id!}
+                                    playerShips={gameState.player2_ships}
+                                    playerName={gameState.player2_name}
+                                    isReady={gameState.player2_ready}
+                                    isYourBoard={true}
+                                    status={gameState.status}
+                                    isYourTurn={gameState.current_turn === currentPlayerId}
+                                    shots={opponentShots}
+                                />
+                            )}
+                        </div>
+
+                        {/* Opponent's Board - Right */}
                         <div>
                             <h2 className="text-xl font-bold text-slate-900 mb-4">Enemy Waters</h2>
                             {isPlayer1 ? (
@@ -119,8 +150,8 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                                 />
                             )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </DndContext>
     )
