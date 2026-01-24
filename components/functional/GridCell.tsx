@@ -27,28 +27,23 @@ export default function GridCell({
     })
 
     // Determine background color based on state priority
-    let bgColor = 'bg-blue-50' // Default ocean color
+    let bgColor = 'bg-[#e0f2fe]' // Ocean soft color
+    let borderColor = 'border-[#bae6fd]' // Ocean border
 
     if (isHit) {
-        bgColor = 'bg-red-600' // Hit - highest priority
+        bgColor = 'bg-red-500' // Hit
+        borderColor = 'border-red-600'
     } else if (wasShot) {
-        bgColor = 'bg-gray-400' // Miss
+        bgColor = 'bg-slate-300' // Miss
+        borderColor = 'border-slate-400'
     } else if (isThereShip) {
-        bgColor = 'bg-gray-700' // Your ship (only visible on your board)
+        bgColor = 'bg-[#2563eb]' // Ship blue
+        borderColor = 'border-[#1d4ed8]'
     }
 
     if (isOver) {
-        bgColor = 'bg-green-400' // Drag over preview
-    }
-
-    // Debug logging for shot cells
-    if (wasShot) {
-        console.log(`Cell ${row}-${col}:`, {
-            wasShot,
-            isHit,
-            isThereShip,
-            bgColor
-        })
+        bgColor = 'bg-blue-200' // Hover preview
+        borderColor = 'border-blue-400'
     }
 
     return (
@@ -57,17 +52,18 @@ export default function GridCell({
             onClick={() => handleCellAttack(row, col)}
             disabled={wasShot}
             className={`
-                w-8 h-8 border border-blue-400 
-                transition-all duration-200 
-                relative flex items-center justify-center
+                w-12 h-12 border
+                transition-colors duration-200
+                flex items-center justify-center
                 ${bgColor}
-                ${canAttack && !wasShot ? 'hover:bg-red-200 cursor-crosshair' : ''}
+                ${borderColor}
+                ${canAttack && !wasShot ? 'hover:bg-blue-100 cursor-pointer' : ''}
                 ${wasShot ? 'cursor-not-allowed' : ''}
             `}
         >
             {/* Show hit/miss indicators */}
-            {isHit && <span className="text-2xl">💥</span>}
-            {wasShot && !isHit && <span className="text-xl">●</span>}
+            {isHit && <span className="text-white text-xl">✕</span>}
+            {wasShot && !isHit && <span className="text-slate-600 text-xl">○</span>}
         </button>
     )
 }

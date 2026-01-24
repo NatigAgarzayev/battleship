@@ -1,29 +1,44 @@
 import { ShipType } from '@/constants/ships'
-import { useDraggable } from '@dnd-kit/core';
-import React from 'react'
+import { useDraggable } from '@dnd-kit/core'
+import { CSS } from '@dnd-kit/utilities'
 
-export default function ship({ ship, isPlaced }: { ship: ShipType, isPlaced: boolean }) {
+interface ShipProps {
+    ship: ShipType
+    isPlaced?: boolean
+}
 
-    const { setNodeRef, listeners, attributes, transform, isDragging } = useDraggable({
+export default function Ship({ ship, isPlaced = false }: ShipProps) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `ship-${ship.id}`,
         data: ship,
         disabled: isPlaced
-    });
+    })
 
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    const style = {
+        transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'grab'
-    } : undefined
+    }
 
-    const widthClass = {
-        2: 'w-16',
-        3: 'w-24',
-        4: 'w-32',
-        5: 'w-40'
-    }[ship.length]
+    // Width based on ship length (each cell is 48px in the new design)
+    const widths = {
+        2: 'w-24',   // 2 * 12 * 4 (Tailwind spacing)
+        3: 'w-36',   // 3 * 12 * 4
+        4: 'w-48',   // 4 * 12 * 4
+        5: 'w-60'    // 5 * 12 * 4
+    }
 
     return (
-        <div ref={setNodeRef} {...listeners} {...attributes} style={style} className={`bg-gray-800 h-4 ${widthClass} ${isPlaced ? 'cursor-not-allowed' : 'cursor-grab'}`}></div>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={`
+                bg-[#2563eb] rounded-full h-8 flex items-center px-4 text-white text-xs font-semibold
+                ${widths[ship.length as keyof typeof widths]}
+                ${isPlaced ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}
+            `}
+        >
+        </div>
     )
 }
