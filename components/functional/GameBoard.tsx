@@ -8,7 +8,6 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     const [currentPlayerId, setCurrentPlayerId] = useState<string>('')
 
     useEffect(() => {
-        // Get current player ID from localStorage
         const playerId = localStorage.getItem('currentPlayerId')
         if (playerId) {
             setCurrentPlayerId(playerId)
@@ -23,20 +22,21 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
         console.log("Drag ended", event)
     }
 
-    // Determine which player is you
     const isPlayer1 = currentPlayerId === gameState.player1_id
     const isPlayer2 = currentPlayerId === gameState.player2_id
 
-    // Don't render until we know who the current player is
     if (!currentPlayerId) return <div>Loading...</div>
+
+    const yourShots = isPlayer1 ? gameState.player1_shots : gameState.player2_shots
+    const opponentShots = isPlayer1 ? gameState.player2_shots : gameState.player1_shots
 
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex gap-8">
-                {/* Your board - always show first */}
-                {isPlayer1 && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Your Board</h2>
+                {/* Your board - render ONLY for the current player */}
+                <div>
+                    <h2 className="text-2xl font-bold mb-2">Your Board</h2>
+                    {isPlayer1 ? (
                         <GameGrid
                             gameCode={gameState.game_code}
                             playerId={gameState.player1_id}
@@ -46,12 +46,9 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             isYourBoard={true}
                             status={gameState.status}
                             isYourTurn={gameState.current_turn === currentPlayerId}
+                            shots={opponentShots}
                         />
-                    </div>
-                )}
-                {isPlayer2 && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Your Board</h2>
+                    ) : (
                         <GameGrid
                             gameCode={gameState.game_code}
                             playerId={gameState.player2_id!}
@@ -61,36 +58,38 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             isYourBoard={true}
                             status={gameState.status}
                             isYourTurn={gameState.current_turn === currentPlayerId}
+                            shots={opponentShots}
                         />
-                    </div>
-                )}
+                    )}
+                </div>
 
-                {/* Opponent's board - only show during active game */}
+                {/* Opponent's board - only during active game */}
                 {gameState.status === "active" && (
                     <div>
                         <h2 className="text-2xl font-bold mb-2">Opponent's Board</h2>
-                        {isPlayer1 && gameState.player2_id && (
+                        {isPlayer1 ? (
                             <GameGrid
                                 gameCode={gameState.game_code}
-                                playerId={gameState.player2_id}
-                                playerShips={null} // Don't pass opponent ships!
+                                playerId={gameState.player2_id!}
+                                playerShips={gameState.player2_ships}
                                 playerName={gameState.player2_name}
                                 isReady={gameState.player2_ready}
                                 isYourBoard={false}
                                 status={gameState.status}
                                 isYourTurn={gameState.current_turn === currentPlayerId}
+                                shots={yourShots}
                             />
-                        )}
-                        {isPlayer2 && (
+                        ) : (
                             <GameGrid
                                 gameCode={gameState.game_code}
                                 playerId={gameState.player1_id}
-                                playerShips={null} // Don't pass opponent ships!
+                                playerShips={gameState.player1_ships}
                                 playerName={gameState.player1_name}
                                 isReady={gameState.player1_ready}
                                 isYourBoard={false}
                                 status={gameState.status}
                                 isYourTurn={gameState.current_turn === currentPlayerId}
+                                shots={yourShots}
                             />
                         )}
                     </div>

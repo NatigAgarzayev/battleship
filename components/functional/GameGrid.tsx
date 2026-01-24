@@ -17,16 +17,19 @@ interface GameGridProps {
     isYourBoard: boolean
     status: IGameData['status']
     isYourTurn: boolean
+    shots: IGameData['player1_shots'] | IGameData['player2_shots']
 }
 
 // Game Grid component
-export default function GameGrid({ gameCode, playerShips, playerId, playerName, isReady, isYourBoard, status, isYourTurn }: GameGridProps) {
+export default function GameGrid({ gameCode, playerShips, playerId, playerName, isReady, isYourBoard, status, isYourTurn, shots }: GameGridProps) {
     const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
     const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
     const [isAttacking, setIsAttacking] = useState(false)
 
     const showShipPlacement = isYourBoard && !isReady && status === 'setup'
     const showShips = isYourBoard
+
+    const shipsForHitDetection = playerShips || ships
 
     const handleCellAttack = async (row: number, col: number) => {
         // Only allow attacks on opponent's board during your turn
@@ -234,17 +237,30 @@ export default function GameGrid({ gameCode, playerShips, playerId, playerName, 
                     {/* Grid cells */}
                     {Array.from({ length: SIZE }, (_, row) => (
                         <div key={row} className="grid grid-cols-10">
-                            {Array.from({ length: SIZE }, (_, col) => (
-                                <GridCell
-                                    isThereShip={showShips && ships.some(shipLoc => shipLoc.ship_coordinates.includes(`${row}-${col}`))}
-                                    isOver={hoveredCells.has(`${row}-${col}`)}
-                                    canAttack={status === 'active' && !isYourBoard && isYourTurn && !isAttacking}
-                                    key={col}
-                                    col={col}
-                                    row={row}
-                                    handleCellAttack={handleCellAttack}
-                                />
-                            ))}
+                            {Array.from({ length: SIZE }, (_, col) => {
+                                const cellId = `${row}-${col}`
+
+                                // Use shipsForHitDetection instead of ships
+                                const hasShip = shipsForHitDetection.some(shipLoc =>
+                                    shipLoc.ship_coordinates.includes(cellId)
+                                )
+                                const wasShot = shots.includes(cellId)
+                                const isHit = wasShot && hasShip
+
+                                return (
+                                    <GridCell
+                                        key={col}
+                                        isThereShip={showShips && hasShip}
+                                        isOver={hoveredCells.has(cellId)}
+                                        canAttack={status === 'active' && !isYourBoard && isYourTurn && !isAttacking}
+                                        wasShot={wasShot}
+                                        isHit={isHit}
+                                        col={col}
+                                        row={row}
+                                        handleCellAttack={handleCellAttack}
+                                    />
+                                )
+                            })}
                         </div>
                     ))}
                 </div>
