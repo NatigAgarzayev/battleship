@@ -4,7 +4,7 @@ import GridCell from './GridCell'
 import { useDndMonitor } from '@dnd-kit/core'
 import { IGameData, IShipsLocation } from '@/types/game'
 import { Button } from '../ui/button'
-import { setPlayerReady } from '@/hooks/game'
+import { makeAttack, setPlayerReady } from '@/hooks/game'
 
 const SIZE = 10
 
@@ -16,18 +16,54 @@ interface GameGridProps {
     isReady: boolean
     isYourBoard: boolean
     status: IGameData['status']
+    isYourTurn: boolean
 }
 
 // Game Grid component
-export default function GameGrid({ gameCode, playerShips, playerId, playerName, isReady, isYourBoard, status }: GameGridProps) {
+export default function GameGrid({ gameCode, playerShips, playerId, playerName, isReady, isYourBoard, status, isYourTurn }: GameGridProps) {
     const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
     const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
+    const [isAttacking, setIsAttacking] = useState(false)
+
     const showShipPlacement = isYourBoard && !isReady && status === 'setup'
     const showShips = isYourBoard
 
-    const handleCellAttack = (row: number, col: number) => {
-        console.log(`Attacking cell at row ${row}, col ${col}`)
-        // Implement attack logic here
+    const handleCellAttack = async (row: number, col: number) => {
+        // Only allow attacks on opponent's board during your turn
+        if (status !== 'active' || isYourBoard || !isYourTurn || isAttacking) {
+            return
+        }
+
+        const targetCell = `${row}-${col}`
+
+        try {
+            setIsAttacking(true)
+
+            // Get current player ID from localStorage
+            const currentPlayerId = localStorage.getItem('currentPlayerId')
+            if (!currentPlayerId) {
+                throw new Error('Player ID not found')
+            }
+
+            const result = await makeAttack(gameCode, currentPlayerId, targetCell)
+
+            console.log('Attack result:', result)
+
+            if (result.isHit) {
+                console.log('🎯 HIT!')
+            } else {
+                console.log('💧 MISS!')
+            }
+
+            if (result.gameWon) {
+                alert('🎉 You won the game!')
+            }
+        } catch (error: any) {
+            console.error('Attack error:', error)
+            alert(error.message || 'Failed to make attack')
+        } finally {
+            setIsAttacking(false)
+        }
     }
 
     // Helper function to generate ship coordinates
@@ -202,6 +238,7 @@ export default function GameGrid({ gameCode, playerShips, playerId, playerName, 
                                 <GridCell
                                     isThereShip={showShips && ships.some(shipLoc => shipLoc.ship_coordinates.includes(`${row}-${col}`))}
                                     isOver={hoveredCells.has(`${row}-${col}`)}
+                                    canAttack={status === 'active' && !isYourBoard && isYourTurn && !isAttacking}
                                     key={col}
                                     col={col}
                                     row={row}

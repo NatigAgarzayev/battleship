@@ -181,3 +181,87 @@ export const chooseGameMode = async (gameCode: string, gameType: 'pvp' | 'bot') 
     if (error) throw error
     return data
 }
+
+export const makeAttack = async (
+    gameCode: string,
+    attackingPlayerId: string,
+    targetCell: string
+) => {
+    // Get current game state
+    const { data: game, error: fetchError } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (fetchError || !game) {
+        throw new Error('Game not found')
+    }
+
+    // Verify it's the attacker's turn
+    if (game.current_turn !== attackingPlayerId) {
+        throw new Error('Not your turn!')
+    }
+
+    // Verify game is active
+    if (game.status !== 'active') {
+        throw new Error('Game is not active')
+    }
+
+    const isPlayer1 = game.player1_id === attackingPlayerId
+
+    // Get the correct shots array
+    const shotsKey = isPlayer1 ? 'player1_shots' : 'player2_shots'
+    const currentShots = game[shotsKey] || []
+
+    // Check if this cell was already attacked
+    if (currentShots.includes(targetCell)) {
+        throw new Error('Cell already attacked!')
+    }
+
+    // Add new shot
+    const updatedShots = [...currentShots, targetCell]
+
+    // Switch turn to other player
+    const nextTurn = isPlayer1 ? game.player2_id : game.player1_id
+
+    // Check if this shot hit a ship
+    const opponentShipsKey = isPlayer1 ? 'player2_ships' : 'player1_ships'
+    const opponentShips: IShipsLocation[] = game[opponentShipsKey] || []
+
+    const isHit = opponentShips.some(ship =>
+        ship.ship_coordinates.includes(targetCell)
+    )
+
+    console.log(`Attack on ${targetCell}: ${isHit ? 'HIT!' : 'MISS'}`)
+
+    // Check if game is won (all opponent ships are destroyed)
+    const allOpponentCells = opponentShips.flatMap(ship => ship.ship_coordinates)
+    const allHits = updatedShots.filter(shot => allOpponentCells.includes(shot))
+    const gameWon = allHits.length === allOpponentCells.length
+
+    const updates: any = {
+        [shotsKey]: updatedShots,
+        current_turn: nextTurn,
+        updated_at: new Date().toISOString()
+    }
+
+    // If game is won, update status
+    if (gameWon) {
+        updates.status = 'finished'
+        updates.winner = attackingPlayerId
+        updates.current_turn = null
+        console.log('🎉 Game won by', attackingPlayerId)
+    }
+
+    const { data, error } = await supabase
+        .from('games')
+        .update(updates)
+        .eq('game_code', gameCode)
+        .select()
+        .single()
+
+    if (error) throw error
+
+    return { success: true, isHit, gameWon, data }
+}

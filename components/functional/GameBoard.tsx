@@ -45,6 +45,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             isReady={gameState.player1_ready}
                             isYourBoard={true}
                             status={gameState.status}
+                            isYourTurn={gameState.current_turn === currentPlayerId}
                         />
                     </div>
                 )}
@@ -59,6 +60,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             isReady={gameState.player2_ready}
                             isYourBoard={true}
                             status={gameState.status}
+                            isYourTurn={gameState.current_turn === currentPlayerId}
                         />
                     </div>
                 )}
@@ -71,22 +73,24 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             <GameGrid
                                 gameCode={gameState.game_code}
                                 playerId={gameState.player2_id}
-                                playerShips={gameState.player2_ships}
+                                playerShips={null} // Don't pass opponent ships!
                                 playerName={gameState.player2_name}
                                 isReady={gameState.player2_ready}
                                 isYourBoard={false}
                                 status={gameState.status}
+                                isYourTurn={gameState.current_turn === currentPlayerId}
                             />
                         )}
                         {isPlayer2 && (
                             <GameGrid
                                 gameCode={gameState.game_code}
                                 playerId={gameState.player1_id}
-                                playerShips={null}
+                                playerShips={null} // Don't pass opponent ships!
                                 playerName={gameState.player1_name}
                                 isReady={gameState.player1_ready}
                                 isYourBoard={false}
                                 status={gameState.status}
+                                isYourTurn={gameState.current_turn === currentPlayerId}
                             />
                         )}
                     </div>

@@ -1,7 +1,23 @@
+// GridCell.tsx
 import { useDroppable } from '@dnd-kit/core'
-import React, { useState } from 'react'
 
-export default function GridCell({ isThereShip, isOver, row, col, handleCellAttack }: { isThereShip: boolean, isOver: boolean, row: number, col: number, handleCellAttack: (row: number, col: number) => void }) {
+interface GridCellProps {
+    row: number
+    col: number
+    isOver: boolean
+    isThereShip: boolean
+    canAttack?: boolean
+    handleCellAttack: (row: number, col: number) => void
+}
+
+export default function GridCell({
+    row,
+    col,
+    isOver,
+    isThereShip,
+    canAttack = false,
+    handleCellAttack
+}: GridCellProps) {
     const { setNodeRef } = useDroppable({
         id: `${row}-${col}`,
         data: { row, col }
@@ -10,9 +26,14 @@ export default function GridCell({ isThereShip, isOver, row, col, handleCellAtta
     return (
         <button
             ref={setNodeRef}
-            key={col}
             onClick={() => handleCellAttack(row, col)}
-            className={`w-8 h-8 border border-blue-400 transition-all duration-200 ${isOver ? 'bg-red-600' : ''} ${isThereShip ? 'bg-gray-700' : 'bg-blue-300'}`}
+            className={`
+                w-8 h-8 border border-blue-400 
+                transition-all duration-200 
+                ${isThereShip ? 'bg-gray-700' : 'bg-blue-50'}
+                ${isOver ? 'bg-green-400' : ''}
+                ${canAttack ? 'hover:bg-red-200 cursor-crosshair' : ''}
+            `}
         >
         </button>
     )
