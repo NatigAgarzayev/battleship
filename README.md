@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚢 Battleship Game
 
-## Getting Started
+A modern, real-time multiplayer implementation of the classic Battleship game built with Next.js and Supabase. Challenge your friends or battle against an AI opponent in this tactical naval warfare game.
 
-First, run the development server:
+## ✨ Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Real-time Multiplayer** - Play against friends with live game updates
+- **AI Opponent** - Practice against a bot player
+- **Drag & Drop Ship Placement** - Intuitive ship positioning interface
+- **Live Turn System** - Real-time turn-based gameplay with automatic updates
+- **Game Lobby** - Create or join games with shareable game codes
+- **Responsive Design** - Beautiful UI that works on desktop and mobile
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Technologies Used
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Frontend
+- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
+- **[React 19](https://react.dev/)** - UI library
+- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
+- **[shadcn/ui](https://ui.shadcn.com/)** - UI component library
+- **[dnd-kit](https://dndkit.com/)** - Drag and drop functionality
+- **[Lucide Icons](https://lucide.dev/)** - Icon library
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Backend
+- **[Supabase](https://supabase.com/)** - Backend as a Service
+  - PostgreSQL database
+  - Real-time subscriptions
+  - Row Level Security (RLS)
 
-## Learn More
+### Fonts
+- **[Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro)** - Google Fonts
 
-To learn more about Next.js, take a look at the following resources:
+## 🎮 Game Rules
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Setup Phase**
+   - Place 5 ships on your 10x10 grid:
+     - Carrier (5 cells)
+     - Battleship (4 cells)
+     - Cruiser (3 cells)
+     - Submarine (3 cells)
+     - Destroyer (2 cells)
+   - Ships must be placed horizontally with at least 1 cell spacing between them
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Battle Phase**
+   - Take turns attacking opponent's grid
+   - Hit all cells of an enemy ship to sink it
+   - First player to sink all opponent ships wins!
 
-## Deploy on Vercel
+## 🚀 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Node.js 18+ installed
+- A Supabase account (free tier works)
+
+---
+
+Built with ❤️ using Next.js and Supabase
