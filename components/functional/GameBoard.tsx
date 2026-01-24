@@ -33,6 +33,25 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="flex gap-8">
+                {
+                    gameState.status === 'setup' && !((isPlayer1 && gameState.player1_ready) || (isPlayer2 && gameState.player2_ready)) && (
+                        <div className="p-4 bg-yellow-200 border border-yellow-400 rounded">
+                            <h2 className="text-xl font-bold mb-2">Setup Phase</h2>
+                            <p>Place your ships on your board. Once you're ready, click the "Ready" button.</p>
+                        </div>
+                    )
+                }
+                {
+                    gameState.status === 'finished' && (
+                        <div className="p-4 bg-green-200 border border-green-400 rounded">
+                            <h2 className="text-xl font-bold mb-2">Game Over</h2>
+                            <p>{isPlayer1
+                                ? (gameState.winner === gameState.player1_id ? 'You win!' : 'You lose!')
+                                : (gameState.winner === gameState.player2_id ? 'You win!' : 'You lose!')}
+                            </p>
+                        </div>
+                    )
+                }
                 {/* Your board - render ONLY for the current player */}
                 <div>
                     <h2 className="text-2xl font-bold mb-2">Your Board</h2>
