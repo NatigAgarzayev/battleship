@@ -14,6 +14,7 @@ import { createGame, joinGame } from "@/hooks/game";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Anchor, Ship, Plus, Users, User, Bot, CirclePlus } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter()
@@ -71,9 +72,9 @@ export default function Home() {
           <span className="text-xl font-black tracking-tight text-slate-900 uppercase italic">Battleship</span>
         </div>
         <div className="flex gap-6 items-center">
-          <Button variant="ghost" className="text-sm font-bold text-slate-500 hover:text-sky-500 uppercase tracking-widest">
+          <Link href="/rules" className="text-sm font-bold text-slate-500 hover:text-sky-500 uppercase tracking-widest">
             How to Play
-          </Button>
+          </Link>
         </div>
       </header>
 
@@ -103,9 +104,10 @@ export default function Home() {
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 px-1" htmlFor="nickname">
                     Enter Nickname
                   </label>
-                  <div className="relative mt-1">
+                  <div className="relative mt-2">
                     <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <Input
+                      maxLength={30}
                       id="nickname"
                       placeholder="Admiral Nelson"
                       className="w-full pl-12 pr-4 py-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-sky-500 font-bold text-slate-700 placeholder:text-slate-300"
@@ -120,10 +122,10 @@ export default function Home() {
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 px-1">
                     Choose Battle Mode
                   </label>
-                  <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+                  <div className="mt-2 flex gap-2 p-1 bg-slate-100 rounded-2xl">
                     <button
                       onClick={() => setGameMode('pvp')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all ${gameMode === 'pvp'
+                      className={`cursor-pointer flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all ${gameMode === 'pvp'
                         ? 'bg-white text-sky-600 shadow-md'
                         : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -133,7 +135,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => setGameMode('bot')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all ${gameMode === 'bot'
+                      className={`cursor-pointer  flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all ${gameMode === 'bot'
                         ? 'bg-white text-sky-600 shadow-md'
                         : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -149,7 +151,7 @@ export default function Home() {
                   <Button
                     onClick={handleCreateRoom}
                     disabled={creatingRoom}
-                    className="flex flex-col items-center justify-center gap-2 py-6 px-2 cursor-pointer bg-sky-500 text-white rounded-2xl font-black uppercase tracking-tighter text-sm hover:bg-sky-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-sky-500/25"
+                    className="py-6 px-2 cursor-pointer bg-sky-500 text-white rounded-2xl font-black uppercase tracking-tighter text-sm hover:bg-sky-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-sky-500/25"
                   >
                     <CirclePlus size={10} />
                     {creatingRoom ? 'Creating...' : 'Create Game'}
@@ -157,7 +159,7 @@ export default function Home() {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="flex flex-col items-center justify-center gap-2 py-6 px-2 cursor-pointer bg-white border-2 border-sky-500 text-sky-500 rounded-2xl font-black uppercase tracking-tighter text-sm hover:bg-sky-50 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                      <Button className="py-6 px-2 cursor-pointer bg-white border-2 border-sky-500 text-sky-500 rounded-2xl font-black uppercase tracking-tighter text-sm hover:bg-sky-50 hover:scale-[1.02] active:scale-[0.98] transition-all">
                         <Ship size={24} />
                         Join Game
                       </Button>
