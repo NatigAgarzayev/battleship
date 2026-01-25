@@ -17,6 +17,7 @@ export interface IGameData {
     winner: string | null
     created_at: string
     updated_at: string
+    turn_started_at: string
 }
 
 interface IShipInfo {

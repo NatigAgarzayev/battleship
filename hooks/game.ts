@@ -24,7 +24,7 @@ export const createGame = async (playerName: string | undefined, gameType: 'pvp'
         game_code: gameCode,
         player1_id: playerId,
         player1_name: playerName || null,
-        status: 'setup', // Both players setting up
+        status: 'setup',
         game_type: gameType,
         player1_ready: false,
         player2_ready: false
@@ -36,7 +36,7 @@ export const createGame = async (playerName: string | undefined, gameType: 'pvp'
         gameData.player2_id = botId
         gameData.player2_name = 'Bot'
         gameData.player2_ships = generateBotShips()
-        gameData.player2_ready = true // Bot is always ready
+        gameData.player2_ready = true
     }
 
     const { data, error } = await supabase
@@ -83,7 +83,7 @@ export const joinGame = async (gameCode: string, playerName?: string) => {
             player2_ready: false
         })
         .eq('game_code', gameCode)
-        .is('player2_id', null) // Ensure no one else joined
+        .is('player2_id', null)
         .select()
         .single()
 
@@ -126,6 +126,7 @@ export const setPlayerReady = async (gameCode: string, playerId: string, ships: 
         if (game.player2_ready) {
             updates.status = 'active'
             updates.current_turn = game.player1_id
+            updates.turn_started_at = new Date().toISOString() // Add turn start time
         }
     } else {
         updates.player2_ships = ships
@@ -135,6 +136,7 @@ export const setPlayerReady = async (gameCode: string, playerId: string, ships: 
         if (game.player1_ready) {
             updates.status = 'active'
             updates.current_turn = game.player1_id
+            updates.turn_started_at = new Date().toISOString() // Add turn start time
         }
     }
 
@@ -156,18 +158,14 @@ export const chooseGameMode = async (gameCode: string, gameType: 'pvp' | 'bot') 
     }
 
     if (gameType === 'bot') {
-        // Create bot player and start immediately
         const botId = 'bot-' + Math.random().toString(36).substring(2, 15)
         updates.player2_id = botId
         updates.player2_name = 'Bot'
         updates.player2_ready = true
         updates.status = 'active'
         updates.current_turn = updates.player1_id || (await supabase.from('games').select('player1_id').eq('game_code', gameCode).single()).data?.player1_id
-
-        // TODO: Generate random bot ship positions
         updates.player2_ships = generateBotShips()
     } else {
-        // PvP - wait for player to join
         updates.status = 'waiting'
     }
 
@@ -243,6 +241,7 @@ export const makeAttack = async (
     const updates: any = {
         [shotsKey]: updatedShots,
         current_turn: nextTurn,
+        turn_started_at: new Date().toISOString(), // Update turn start time
         updated_at: new Date().toISOString()
     }
 
@@ -251,6 +250,7 @@ export const makeAttack = async (
         updates.status = 'finished'
         updates.winner = attackingPlayerId
         updates.current_turn = null
+        updates.turn_started_at = null // Clear turn timestamp when game ends
         console.log('🎉 Game won by', attackingPlayerId)
     }
 
@@ -264,4 +264,49 @@ export const makeAttack = async (
     if (error) throw error
 
     return { success: true, isHit, gameWon, data }
+}
+
+export const makeRandomAttack = async (gameCode: string, attackingPlayerId: string) => {
+    // Get current game state
+    const { data: game, error: fetchError } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (fetchError || !game) {
+        throw new Error('Game not found')
+    }
+
+    // Verify it's the attacker's turn
+    if (game.current_turn !== attackingPlayerId) {
+        throw new Error('Not your turn!')
+    }
+
+    const isPlayer1 = game.player1_id === attackingPlayerId
+    const shotsKey = isPlayer1 ? 'player1_shots' : 'player2_shots'
+    const currentShots = game[shotsKey] || []
+
+    // Generate list of all cells
+    const allCells: string[] = []
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 10; col++) {
+            allCells.push(`${row}-${col}`)
+        }
+    }
+
+    // Filter out already attacked cells
+    const availableCells = allCells.filter(cell => !currentShots.includes(cell))
+
+    if (availableCells.length === 0) {
+        throw new Error('No cells left to attack')
+    }
+
+    // Pick a random cell
+    const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)]
+
+    console.log(`⏰ Time expired! Auto-attacking random cell: ${randomCell}`)
+
+    // Use the existing makeAttack function
+    return await makeAttack(gameCode, attackingPlayerId, randomCell)
 }
