@@ -1,16 +1,23 @@
 'use client'
 import { IGameData } from '@/types/game'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import GameGrid from './GameGrid'
 import { DndContext } from '@dnd-kit/core'
-import { makeRandomAttack } from '@/hooks/game'
+import { checkOpponentConnection, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
 
 const TURN_TIME_LIMIT = 60 // 60 seconds
+const PRESENCE_INTERVAL = 5000 // Send heartbeat every 5 seconds
+const DISCONNECT_THRESHOLD = 30 // Forfeit after 30 seconds of disconnect
 
 export default function GameBoard({ gameState }: { gameState: IGameData }) {
     const [currentPlayerId, setCurrentPlayerId] = useState<string>('')
     const [timeLeft, setTimeLeft] = useState(TURN_TIME_LIMIT)
     const [hasAutoAttacked, setHasAutoAttacked] = useState(false)
+    const [opponentDisconnected, setOpponentDisconnected] = useState(false)
+    const [disconnectDuration, setDisconnectDuration] = useState(0)
+
+    const presenceIntervalRef = useRef<NodeJS.Timeout>()
+    const disconnectCheckRef = useRef<NodeJS.Timeout>()
 
     useEffect(() => {
         const playerId = localStorage.getItem('currentPlayerId')
@@ -22,6 +29,87 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     const isPlayer1 = currentPlayerId === gameState.player1_id
     const isPlayer2 = currentPlayerId === gameState.player2_id
     const isMyTurn = gameState.current_turn === currentPlayerId
+
+    useEffect(() => {
+        if (!currentPlayerId || gameState.status === 'finished' || gameState.status === 'abandoned') {
+            return
+        }
+
+        // Send initial presence
+        updatePresence(gameState.game_code, currentPlayerId)
+
+        // Set up heartbeat interval
+        presenceIntervalRef.current = setInterval(() => {
+            updatePresence(gameState.game_code, currentPlayerId)
+        }, PRESENCE_INTERVAL)
+
+        // Cleanup on unmount or visibility change
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // Tab is hidden, but keep sending heartbeat
+            } else {
+                // Tab is visible, send immediate heartbeat
+                updatePresence(gameState.game_code, currentPlayerId)
+            }
+        }
+
+        const handleBeforeUnload = () => {
+            markPlayerDisconnected(gameState.game_code, currentPlayerId)
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        window.addEventListener('beforeunload', handleBeforeUnload)
+
+        return () => {
+            if (presenceIntervalRef.current) {
+                clearInterval(presenceIntervalRef.current)
+            }
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+
+            // Mark as disconnected when component unmounts
+            markPlayerDisconnected(gameState.game_code, currentPlayerId)
+        }
+    }, [currentPlayerId, gameState.game_code, gameState.status])
+
+    // Check opponent connection status
+    useEffect(() => {
+        if (!currentPlayerId || gameState.status !== 'active') {
+            setOpponentDisconnected(false)
+            setDisconnectDuration(0)
+            return
+        }
+
+        const checkConnection = async () => {
+            const { isConnected, disconnectedFor } = await checkOpponentConnection(
+                gameState.game_code,
+                currentPlayerId
+            )
+
+            setOpponentDisconnected(!isConnected)
+            setDisconnectDuration(disconnectedFor)
+
+            // Auto-forfeit if opponent disconnected for 30+ seconds
+            if (!isConnected && disconnectedFor >= DISCONNECT_THRESHOLD) {
+                const opponentId = isPlayer1 ? gameState.player2_id : gameState.player1_id
+                if (opponentId) {
+                    await forfeitGame(gameState.game_code, opponentId)
+                }
+            }
+        }
+
+        // Check immediately
+        checkConnection()
+
+        // Check every 5 seconds
+        disconnectCheckRef.current = setInterval(checkConnection, 5000)
+
+        return () => {
+            if (disconnectCheckRef.current) {
+                clearInterval(disconnectCheckRef.current)
+            }
+        }
+    }, [currentPlayerId, gameState.game_code, gameState.status, isPlayer1])
 
     // Calculate time left based on database timestamp
     useEffect(() => {
@@ -134,10 +222,13 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                         </div>
                     </div>
                 )}
-
                 {/* Game Over Banner */}
-                {gameState.status === 'finished' && (
-                    <div className="mb-8 p-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl text-center shadow-xl">
+                {(gameState.status === 'finished' || gameState.status === 'abandoned') && (
+                    <div className={`mb-8 p-6 bg-linear-to-r text-white rounded-2xl text-center shadow-xl ${(isPlayer1 && gameState.winner === gameState.player1_id) ||
+                        (isPlayer2 && gameState.winner === gameState.player2_id)
+                        ? 'from-green-500 to-emerald-500'
+                        : 'from-red-500 to-rose-500'
+                        }`}>
                         <h2 className="text-3xl font-black mb-2">
                             {(isPlayer1 && gameState.winner === gameState.player1_id) ||
                                 (isPlayer2 && gameState.winner === gameState.player2_id)
@@ -145,10 +236,15 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                                 : '💔 Defeat'}
                         </h2>
                         <p className="text-lg opacity-90">
-                            {(isPlayer1 && gameState.winner === gameState.player1_id) ||
-                                (isPlayer2 && gameState.winner === gameState.player2_id)
-                                ? 'You have destroyed the enemy fleet!'
-                                : 'Your fleet has been destroyed!'}
+                            {gameState.status === 'abandoned'
+                                ? (isPlayer1 && gameState.winner === gameState.player1_id) ||
+                                    (isPlayer2 && gameState.winner === gameState.player2_id)
+                                    ? 'Opponent abandoned the game!'
+                                    : 'You abandoned the game!'
+                                : (isPlayer1 && gameState.winner === gameState.player1_id) ||
+                                    (isPlayer2 && gameState.winner === gameState.player2_id)
+                                    ? 'You have destroyed the enemy fleet!'
+                                    : 'Your fleet has been destroyed!'}
                         </p>
                     </div>
                 )}

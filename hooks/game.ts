@@ -310,3 +310,112 @@ export const makeRandomAttack = async (gameCode: string, attackingPlayerId: stri
     // Use the existing makeAttack function
     return await makeAttack(gameCode, attackingPlayerId, randomCell)
 }
+
+export const updatePresence = async (gameCode: string, playerId: string) => {
+    const { data: game } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (!game) return
+
+    const isPlayer1 = game.player1_id === playerId
+    const updates: any = {
+        updated_at: new Date().toISOString()
+    }
+
+    if (isPlayer1) {
+        updates.player1_last_seen = new Date().toISOString()
+        updates.player1_connected = true
+    } else {
+        updates.player2_last_seen = new Date().toISOString()
+        updates.player2_connected = true
+    }
+
+    await supabase
+        .from('games')
+        .update(updates)
+        .eq('game_code', gameCode)
+}
+
+// Mark player as disconnected
+export const markPlayerDisconnected = async (gameCode: string, playerId: string) => {
+    const { data: game } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (!game) return
+
+    const isPlayer1 = game.player1_id === playerId
+    const updates: any = {
+        updated_at: new Date().toISOString()
+    }
+
+    if (isPlayer1) {
+        updates.player1_connected = false
+    } else {
+        updates.player2_connected = false
+    }
+
+    await supabase
+        .from('games')
+        .update(updates)
+        .eq('game_code', gameCode)
+}
+
+// Check if opponent is disconnected (hasn't sent heartbeat in 15 seconds)
+export const checkOpponentConnection = async (gameCode: string, currentPlayerId: string) => {
+    const { data: game } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (!game) return { isConnected: true, disconnectedFor: 0 }
+
+    const isPlayer1 = game.player1_id === currentPlayerId
+    const opponentLastSeen = isPlayer1 ? game.player2_last_seen : game.player1_last_seen
+    const opponentConnected = isPlayer1 ? game.player2_connected : game.player1_connected
+
+    if (!opponentLastSeen || !opponentConnected) {
+        return { isConnected: false, disconnectedFor: 0 }
+    }
+
+    const lastSeenTime = new Date(opponentLastSeen).getTime()
+    const currentTime = new Date().getTime()
+    const disconnectedFor = Math.floor((currentTime - lastSeenTime) / 1000)
+
+    // Consider disconnected if no heartbeat for 15 seconds
+    const isConnected = disconnectedFor < 15
+
+    return { isConnected, disconnectedFor }
+}
+
+// Forfeit game due to abandonment
+export const forfeitGame = async (gameCode: string, disconnectedPlayerId: string) => {
+    const { data: game } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (!game) return
+
+    const winnerId = game.player1_id === disconnectedPlayerId
+        ? game.player2_id
+        : game.player1_id
+
+    await supabase
+        .from('games')
+        .update({
+            status: 'abandoned',
+            winner: winnerId,
+            current_turn: null,
+            turn_started_at: null,
+            updated_at: new Date().toISOString()
+        })
+        .eq('game_code', gameCode)
+}
