@@ -3,7 +3,7 @@ import { IGameData } from '@/types/game'
 import React, { useEffect, useRef, useState } from 'react'
 import GameGrid from './GameGrid'
 import { DndContext } from '@dnd-kit/core'
-import { checkOpponentConnection, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
+import { checkOpponentConnection, executeBotTurn, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
 import { Undo2 } from 'lucide-react'
 import {
     Dialog,
@@ -171,6 +171,27 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
         setHasAutoAttacked(false)
     }, [gameState.current_turn])
 
+    useEffect(() => {
+        // Check if it's bot's turn
+        const isBotTurn = gameState.current_turn?.startsWith('bot-')
+
+        if (gameState.status === 'active' && isBotTurn) {
+            // Add a small delay to make it feel more natural (0.5-1.5 seconds)
+            const delay = 500 + Math.random() * 1000
+
+            const timer = setTimeout(async () => {
+                try {
+                    console.log('🤖 Bot is thinking...')
+                    await executeBotTurn(gameState.game_code)
+                } catch (error) {
+                    console.error('Bot move error:', error)
+                }
+            }, delay)
+
+            return () => clearTimeout(timer)
+        }
+    }, [gameState.status, gameState.current_turn, gameState.game_code])
+
     const handleTimeExpired = async () => {
         if (!isMyTurn || gameState.status !== 'active' || hasAutoAttacked) return
 
@@ -287,18 +308,6 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             : `Game Code: ${gameState.game_code}`}
                     </p>
                 </div>
-
-                {/* Opponent Disconnected Warning */}
-                {opponentDisconnected && gameState.status === 'active' && (
-                    <div className="mb-8 p-4 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-2xl text-center">
-                        <div className="font-bold mb-1">⚠️ Opponent Disconnected</div>
-                        <div className="text-sm">
-                            {disconnectDuration < DISCONNECT_THRESHOLD
-                                ? `Waiting for opponent to reconnect... (${DISCONNECT_THRESHOLD - disconnectDuration}s remaining)`
-                                : 'Opponent has abandoned the game. You win!'}
-                        </div>
-                    </div>
-                )}
 
                 {/* Timer Display */}
                 {gameState.status === 'active' && isMyTurn && (

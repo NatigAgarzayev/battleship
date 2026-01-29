@@ -1,3 +1,4 @@
+import { makeBotMove } from "@/lib/botAI"
 import generateBotShips from "@/lib/generateShips"
 import { supabase } from "@/lib/supabase"
 import { IShipsLocation } from "@/types/game"
@@ -418,4 +419,35 @@ export const forfeitGame = async (gameCode: string, disconnectedPlayerId: string
             updated_at: new Date().toISOString()
         })
         .eq('game_code', gameCode)
+}
+
+export const executeBotTurn = async (gameCode: string) => {
+    // Get current game state
+    const { data: game, error: fetchError } = await supabase
+        .from('games')
+        .select('*')
+        .eq('game_code', gameCode)
+        .single()
+
+    if (fetchError || !game) {
+        throw new Error('Game not found')
+    }
+
+    // Verify it's bot's turn
+    if (!game.current_turn?.startsWith('bot-')) {
+        throw new Error('Not bot\'s turn!')
+    }
+
+    // Verify game is active
+    if (game.status !== 'active') {
+        throw new Error('Game is not active')
+    }
+
+    // Get bot's next move using AI
+    const targetCell = makeBotMove(game)
+
+    console.log(`🤖 Bot attacking cell: ${targetCell}`)
+
+    // Execute the attack
+    return await makeAttack(gameCode, game.player2_id!, targetCell)
 }
