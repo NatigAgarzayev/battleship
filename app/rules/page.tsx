@@ -264,7 +264,7 @@ export default function RulesPage() {
                     </Card>
 
                     {/* Pro Tips */}
-                    <Card className="rounded-3xl shadow-lg border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
+                    <Card className="rounded-3xl shadow-lg border-2 border-amber-100 bg-linear-to-br from-amber-50 to-orange-50 overflow-hidden">
                         <CardContent className="p-8">
                             <h3 className="font-black text-2xl text-slate-900 mb-4 flex items-center gap-2">
                                 <span>💡</span>

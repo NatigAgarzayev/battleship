@@ -1,6 +1,6 @@
 'use client'
 import { use, useEffect, useState } from 'react'
-import { fetchGame } from '@/hooks/game'
+import { fetchGame, forfeitGame } from '@/hooks/game'
 import { IGameData } from '@/types/game'
 import GameBoard from '@/components/functional/GameBoard'
 import { supabase } from '@/lib/supabase'
@@ -88,6 +88,7 @@ export default function Battle({ params }: { params: Promise<{ id: string }> }) 
 
     return (
         <div className="bg-[#f0f9ff] min-h-screen bg-cover flex flex-col items-center justify-center p-4">
+
             <h1 className="text-4xl font-bold mb-8 text-blue-800">
                 Battleship Game: {gameState.game_code}
             </h1>

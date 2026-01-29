@@ -4,6 +4,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import GameGrid from './GameGrid'
 import { DndContext } from '@dnd-kit/core'
 import { checkOpponentConnection, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
+import { Undo2 } from 'lucide-react'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { DialogClose } from '@radix-ui/react-dialog'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 const TURN_TIME_LIMIT = 60 // 60 seconds
 const PRESENCE_INTERVAL = 5000 // Send heartbeat every 5 seconds
@@ -15,6 +27,8 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     const [hasAutoAttacked, setHasAutoAttacked] = useState(false)
     const [opponentDisconnected, setOpponentDisconnected] = useState(false)
     const [disconnectDuration, setDisconnectDuration] = useState(0)
+
+    const router = useRouter()
 
     const presenceIntervalRef = useRef<NodeJS.Timeout>()
     const disconnectCheckRef = useRef<NodeJS.Timeout>()
@@ -188,8 +202,79 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
         return 'text-green-600'
     }
 
+    const handleLeaveGame = async (gameState: IGameData) => {
+        try {
+            if (gameState.status === 'active') {
+                await forfeitGame(gameState.game_code, currentPlayerId)
+            }
+
+            router.push('/')
+        } catch (error) {
+            console.error('Error leaving game:', error)
+            alert('Failed to leave game. Please try again.')
+        }
+    }
+
     return (
         <DndContext>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <div className="absolute top-6 left-6">
+                        <button
+                            className="flex items-center gap-1 text-slate-600 hover:text-red-600 transition-colors cursor-pointer px-4 py-2 rounded-lg hover:bg-red-50"
+                        >
+                            <Undo2 className="w-5 h-5" />
+                            <span className="text-sm font-semibold">Leave</span>
+                        </button>
+                    </div>
+                </DialogTrigger>
+                <DialogContent className="rounded-3xl max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black uppercase italic text-slate-900">
+                            Leave Battle?
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-600 text-base">
+                            Are you sure you want to abandon this battle? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                        {/* Warning Box */}
+                        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="text-red-500 text-2xl">⚠️</div>
+                                <div>
+                                    <h4 className="font-bold text-red-900 mb-1">Consequences:</h4>
+                                    <ul className="text-sm text-red-800 space-y-1">
+                                        <li>• You will automatically lose this game</li>
+                                        <li>• Your opponent will be declared the winner</li>
+                                        <li>• This game cannot be resumed</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-2">
+                            <DialogClose asChild>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 py-6 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                                >
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                                <Button
+                                    onClick={() => handleLeaveGame(gameState)}
+                                    className="flex-1 py-6 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-200 transition-all"
+                                >
+                                    Leave Battle
+                                </Button>
+                            </DialogClose>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Page Header */}
                 <div className="text-center mb-12">
@@ -202,6 +287,18 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             : `Game Code: ${gameState.game_code}`}
                     </p>
                 </div>
+
+                {/* Opponent Disconnected Warning */}
+                {opponentDisconnected && gameState.status === 'active' && (
+                    <div className="mb-8 p-4 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-2xl text-center">
+                        <div className="font-bold mb-1">⚠️ Opponent Disconnected</div>
+                        <div className="text-sm">
+                            {disconnectDuration < DISCONNECT_THRESHOLD
+                                ? `Waiting for opponent to reconnect... (${DISCONNECT_THRESHOLD - disconnectDuration}s remaining)`
+                                : 'Opponent has abandoned the game. You win!'}
+                        </div>
+                    </div>
+                )}
 
                 {/* Timer Display */}
                 {gameState.status === 'active' && isMyTurn && (
