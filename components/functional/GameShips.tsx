@@ -49,7 +49,7 @@ export default function GameShips({
                             {isPlaced && !isReady && (
                                 <div onClick={() => onRemoveShip(ship.id)} className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl cursor-pointer">
                                     <button
-                                        className="flex flex-col items-center gap-1 text-slate-600 group-hover:text-red-600 transition-colors"
+                                        className="flex flex-col items-center gap-1 text-slate-600 group-hover:text-red-600 transition-colors cursor-pointer"
                                     >
                                         <Undo2 className="w-6 h-6" />
                                         <span className="text-xs font-semibold">Return</span>

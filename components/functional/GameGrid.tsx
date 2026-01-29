@@ -259,7 +259,7 @@ export default function GameGrid({
                             </span>
                             <Button
                                 variant="ghost"
-                                className="flex items-center gap-2 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-blue-600 px-4 py-2 rounded-lg font-medium transition-all group"
+                                className="flex items-center gap-2 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-blue-600 px-4 py-2 rounded-lg font-medium transition-all group cursor-pointer"
                             >
                                 <RotateCw className="w-4 h-4 group-active:rotate-90 transition-transform" />
                                 Rotate
@@ -268,8 +268,8 @@ export default function GameGrid({
                         <div className="flex flex-wrap gap-3">
                             <Button
                                 onClick={handleClear}
-                                variant="ghost"
-                                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                                variant="outline"
+                                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                             >
                                 Clear
                             </Button>
@@ -287,7 +287,7 @@ export default function GameGrid({
                     <Button
                         disabled={ships.length !== 5}
                         onClick={handleSetPlayerReady}
-                        className="w-full py-5 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-bold text-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200"
+                        className="w-full py-7 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-bold text-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 cursor-pointer"
                     >
                         Start Game
                     </Button>
@@ -305,8 +305,8 @@ export default function GameGrid({
             {/* Turn Indicator for active game */}
             {status === 'active' && (
                 <div className={`mb-6 w-full max-w-2xl p-4 rounded-xl text-center font-bold ${isYourTurn && !isYourBoard
-                        ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                        : 'bg-slate-100 text-slate-600'
+                    ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                    : 'bg-slate-100 text-slate-600'
                     }`}>
                     {isYourTurn && !isYourBoard ? '🎯 Your Turn - Select a target!' : '⏳ Opponent\'s Turn'}
                 </div>

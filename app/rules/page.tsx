@@ -29,7 +29,7 @@ export default function RulesPage() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-grow px-6 py-8 max-w-4xl mx-auto w-full">
+            <main className="grow px-6 py-8 max-w-4xl mx-auto w-full">
                 <div className="text-center mb-12">
                     <div className="inline-flex p-4 rounded-2xl bg-sky-50 text-sky-500 mb-4">
                         <Ship className="w-12 h-12" />
@@ -45,7 +45,7 @@ export default function RulesPage() {
                 <div className="space-y-6">
                     {/* Game Objective */}
                     <Card className="rounded-3xl shadow-lg border-2 border-sky-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-400 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-400 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Game Objective</h2>
@@ -61,7 +61,7 @@ export default function RulesPage() {
 
                     {/* Your Fleet */}
                     <Card className="rounded-3xl shadow-lg border-2 border-sky-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-400 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-400 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Ship className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Your Fleet</h2>
@@ -123,7 +123,7 @@ export default function RulesPage() {
 
                     {/* Setup Phase */}
                     <Card className="rounded-3xl shadow-lg border-2 border-sky-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-400 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-400 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Grid3x3 className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Setup Phase</h2>
@@ -179,7 +179,7 @@ export default function RulesPage() {
 
                     {/* Battle Phase */}
                     <Card className="rounded-3xl shadow-lg border-2 border-sky-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-400 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-400 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Target className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Battle Phase</h2>
@@ -233,7 +233,7 @@ export default function RulesPage() {
 
                     {/* Game Modes */}
                     <Card className="rounded-3xl shadow-lg border-2 border-sky-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-400 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-400 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Users className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Game Modes</h2>
