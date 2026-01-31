@@ -208,7 +208,7 @@ export default function GameGrid({
 
     // Grid component to reuse
     const GridComponent = () => (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#bae6fd]">
+        <div className="bg-white p-6 pr-10 pb-10 rounded-2xl shadow-sm border border-[#bae6fd]">
             <div className="flex">
                 {/* Row labels */}
                 <div className="flex flex-col pt-6 pr-2">
