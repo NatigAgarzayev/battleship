@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card";
 import { createGame, joinGame } from "@/hooks/game";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Anchor, Ship, Plus, Users, User, Bot, CirclePlus } from "lucide-react";
 import Link from "next/link";
 
@@ -23,6 +23,21 @@ export default function Home() {
   const [creatingRoom, setCreatingRoom] = useState(false)
   const [joiningRoom, setJoiningRoom] = useState(false)
   const [roomCode, setRoomCode] = useState('')
+  const searchParams = useSearchParams()
+
+
+  useEffect(() => {
+    const invitedCode = searchParams.get('invited')
+    console.log("Invited code from URL:", invitedCode)
+
+    if (invitedCode) {
+      // Set the room code in state for display
+      setRoomCode(invitedCode)
+
+      // Auto-join with the invited code
+      handleAutoJoin(invitedCode)
+    }
+  }, [])
 
   const handleCreateRoom = async () => {
     try {
@@ -35,6 +50,32 @@ export default function Home() {
       alert("Failed to create room. Please try again.");
     } finally {
       setCreatingRoom(false);
+    }
+  }
+
+  const handleAutoJoin = async (code: string) => {
+    try {
+      setJoiningRoom(true)
+      const trimmedCode = code.trim().toUpperCase()
+
+      if (trimmedCode.length === 0) {
+        alert("Please enter a valid game code.")
+        return
+      }
+
+      const joinedRoom = await joinGame(trimmedCode, nickname || undefined)
+
+      if (!joinedRoom) {
+        alert("Failed to join the game. Please check the code and try again.")
+        return
+      }
+
+      router.push(`/battle/${trimmedCode}`)
+    } catch (error: any) {
+      console.error("Error joining room:", error)
+      alert(error.message || "Failed to join the game. Please check the code and try again.")
+    } finally {
+      setJoiningRoom(false)
     }
   }
 

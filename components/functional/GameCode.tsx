@@ -7,7 +7,7 @@ export default function GameCode({ gameCode }: { gameCode: string }) {
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(gameCode)
+            await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_URL}?invited=${gameCode}`)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
         } catch (error) {
