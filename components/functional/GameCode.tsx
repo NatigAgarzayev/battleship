@@ -1,17 +1,21 @@
 'use client'
 import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
+import { gameToasts, showError } from '@/lib/toasts'
 
 export default function GameCode({ gameCode }: { gameCode: string }) {
     const [copied, setCopied] = useState(false)
+
 
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_URL}?invited=${gameCode}`)
             setCopied(true)
+            gameToasts.codeCopied()
             setTimeout(() => setCopied(false), 2000)
         } catch (error) {
             console.error('Failed to copy:', error)
+            showError('Failed to copy', 'Please try again')
         }
     }
 

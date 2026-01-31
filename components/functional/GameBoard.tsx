@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import GameGrid from './GameGrid'
 import { DndContext } from '@dnd-kit/core'
 import { checkOpponentConnection, executeBotTurn, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
-import { TriangleAlert, Undo2 } from 'lucide-react'
+import { Anchor, Target, TriangleAlert, Undo2 } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -17,6 +17,7 @@ import { DialogClose } from '@radix-ui/react-dialog'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import GameOverBanner from './GameOverBanner'
+import { gameToasts, showError } from '@/lib/toasts'
 
 const TURN_TIME_LIMIT = 60 // 60 seconds
 const PRESENCE_INTERVAL = 5000 // Send heartbeat every 5 seconds
@@ -218,22 +219,19 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
         return `${mins}:${secs.toString().padStart(2, '0')}`
     }
 
-    const getTimerColor = () => {
-        if (timeLeft <= 10) return 'text-red-600 animate-pulse'
-        if (timeLeft <= 30) return 'text-orange-600'
-        return 'text-green-600'
-    }
-
     const handleLeaveGame = async (gameState: IGameData) => {
         try {
             if (gameState.status === 'active') {
                 await forfeitGame(gameState.game_code, currentPlayerId)
+                gameToasts.forfeitedGame()
+            } else {
+                gameToasts.leftGame()
             }
 
             router.push('/')
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error leaving game:', error)
-            alert('Failed to leave game. Please try again.')
+            showError('Failed to leave game', error.message || 'Please try again')
         }
     }
 
@@ -301,30 +299,53 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Page Header */}
                 <div className="text-center mb-12">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                        {gameState.status === 'setup' ? 'Ship Placement' : 'Battle in Progress'}
-                    </h1>
-                    <p className="text-slate-500 font-medium">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        <Anchor className="w-8 h-8 text-sky-500" />
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 uppercase italic tracking-tight">
+                            {gameState.status === 'setup' ? 'Ship Placement' : 'Battle in Progress'}
+                        </h1>
+                        <Anchor className="w-8 h-8 text-sky-500" />
+                    </div>
+                    <p className="text-lg text-slate-600 font-semibold">
                         {gameState.status === 'setup'
                             ? 'Position your fleet on the 10x10 grid'
-                            : `Game Code: ${gameState.game_code}`}
+                            : (
+                                <span className="inline-flex items-center gap-2 bg-[#f0f9ff] px-6 py-2 rounded-xl border-2 border-[#bae6fd]">
+                                    <span className="text-slate-500 text-sm uppercase tracking-wider">Game Code:</span>
+                                    <span className="font-mono font-black text-sky-600 text-xl">{gameState.game_code}</span>
+                                </span>
+                            )}
                     </p>
                 </div>
 
-                {/* Timer Display */}
+                {/* Timer Display - Minimal */}
                 {gameState.status === 'active' && isMyTurn && (
                     <div className="mb-8 flex justify-center">
-                        <div className={`px-8 py-4 bg-white rounded-2xl shadow-lg border-2 transition-all ${timeLeft <= 10 ? 'border-red-300 shake' : timeLeft <= 30 ? 'border-orange-300' : 'border-green-300'
-                            }`}>
-                            <div className="text-center">
-                                <div className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                        <div className="inline-flex items-center gap-4 bg-white rounded-2xl shadow-lg border-2 border-[#bae6fd] px-8 py-4">
+                            <div className={`p-3 rounded-full ${timeLeft <= 10
+                                ? 'bg-red-100 animate-pulse'
+                                : timeLeft <= 30
+                                    ? 'bg-orange-100'
+                                    : 'bg-sky-100'
+                                }`}>
+                                <Target className={`w-6 h-6 ${timeLeft <= 10
+                                    ? 'text-red-600'
+                                    : timeLeft <= 30
+                                        ? 'text-orange-600'
+                                        : 'text-sky-600'
+                                    }`} />
+                            </div>
+                            <div>
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                                     Time Remaining
                                 </div>
-                                <div className={`text-5xl font-black ${getTimerColor()}`}>
+                                <div className={`text-3xl font-black ${timeLeft <= 10
+                                    ? 'text-red-600'
+                                    : timeLeft <= 30
+                                        ? 'text-orange-600'
+                                        : 'text-sky-600'
+                                    }`}>
                                     {formatTime(timeLeft)}
-                                </div>
-                                <div className="text-xs text-slate-400 mt-1">
-                                    {timeLeft <= 10 ? '⚠️ Hurry up!' : 'Make your move'}
                                 </div>
                             </div>
                         </div>

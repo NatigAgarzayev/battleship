@@ -6,6 +6,7 @@ import { IGameData, IShipsLocation } from '@/types/game'
 import { Button } from '../ui/button'
 import { makeAttack, setPlayerReady } from '@/hooks/game'
 import { Lightbulb, RotateCw } from 'lucide-react'
+import { gameToasts, showError } from '@/lib/toasts'
 
 const SIZE = 10
 
@@ -42,6 +43,9 @@ export default function GameGrid({
 
     const handleCellAttack = async (row: number, col: number) => {
         if (status !== 'active' || isYourBoard || !isYourTurn || isAttacking) {
+            if (!isYourTurn && status === 'active') {
+                gameToasts.notYourTurn()
+            }
             return
         }
 
@@ -57,11 +61,18 @@ export default function GameGrid({
             const result = await makeAttack(gameCode, currentPlayerId, targetCell)
 
             if (result.gameWon) {
-                alert('🎉 You won the game!')
+                gameToasts.victory()
             }
         } catch (error: any) {
             console.error('Attack error:', error)
-            alert(error.message || 'Failed to make attack')
+
+            if (error.message?.includes('already attacked')) {
+                gameToasts.cellAlreadyShot()
+            } else if (error.message?.includes('Not your turn')) {
+                gameToasts.notYourTurn()
+            } else {
+                showError('Attack Failed', error.message || 'Failed to make attack')
+            }
         } finally {
             setIsAttacking(false)
         }

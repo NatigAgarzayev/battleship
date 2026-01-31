@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Anchor, Ship, Plus, Users, User, Bot, CirclePlus } from "lucide-react";
 import Link from "next/link";
+import { gameToasts, showError } from '@/lib/toasts'
 
 export default function Home() {
   const router = useRouter()
@@ -31,25 +32,26 @@ export default function Home() {
     console.log("Invited code from URL:", invitedCode)
 
     if (invitedCode) {
-      // Set the room code in state for display
       setRoomCode(invitedCode)
-
-      // Auto-join with the invited code
       handleAutoJoin(invitedCode)
     }
+
+    router.replace(window.location.pathname)
   }, [])
 
   const handleCreateRoom = async () => {
     try {
-      setCreatingRoom(true);
+      setCreatingRoom(true)
       const roomData = await createGame(nickname || undefined, gameMode)
-      console.log("Room created:", roomData);
-      router.push(`/battle/${roomData.game.game_code}`);
-    } catch (error) {
-      console.error("Error creating room:", error);
-      alert("Failed to create room. Please try again.");
+      console.log("Room created:", roomData)
+
+      gameToasts.gameCreated(roomData.game.game_code)
+      router.push(`/battle/${roomData.game.game_code}`)
+    } catch (error: any) {
+      console.error("Error creating room:", error)
+      showError("Failed to create game", error.message || "Please try again")
     } finally {
-      setCreatingRoom(false);
+      setCreatingRoom(false)
     }
   }
 
@@ -59,21 +61,31 @@ export default function Home() {
       const trimmedCode = code.trim().toUpperCase()
 
       if (trimmedCode.length === 0) {
-        alert("Please enter a valid game code.")
+        gameToasts.invalidGameCode()
         return
       }
 
       const joinedRoom = await joinGame(trimmedCode, nickname || undefined)
 
       if (!joinedRoom) {
-        alert("Failed to join the game. Please check the code and try again.")
+        gameToasts.gameNotFound()
         return
       }
 
+      gameToasts.joinedGame()
       router.push(`/battle/${trimmedCode}`)
     } catch (error: any) {
       console.error("Error joining room:", error)
-      alert(error.message || "Failed to join the game. Please check the code and try again.")
+
+      if (error.message?.includes('full')) {
+        gameToasts.roomFull()
+      } else if (error.message?.includes('not found')) {
+        gameToasts.gameNotFound()
+      } else if (error.message?.includes('bot game')) {
+        showError("Cannot Join", "This is a bot game and cannot be joined")
+      } else {
+        showError("Failed to join game", error.message || "Please check the code and try again")
+      }
     } finally {
       setJoiningRoom(false)
     }
@@ -81,23 +93,37 @@ export default function Home() {
 
   const handleJoinRoom = async () => {
     try {
-      setJoiningRoom(true);
-      const trimmedCode = roomCode.trim().toUpperCase();
+      setJoiningRoom(true)
+      const trimmedCode = roomCode.trim().toUpperCase()
+
       if (trimmedCode.length === 0) {
-        alert("Please enter a valid game code.");
-        return;
+        gameToasts.invalidGameCode()
+        return
       }
-      const joinedRoom = await joinGame(trimmedCode, nickname || undefined);
+
+      const joinedRoom = await joinGame(trimmedCode, nickname || undefined)
+
       if (!joinedRoom) {
-        alert("Failed to join the game. Please check the code and try again.");
-        return;
+        gameToasts.gameNotFound()
+        return
       }
-      router.push(`/battle/${trimmedCode}`);
+
+      gameToasts.joinedGame()
+      router.push(`/battle/${trimmedCode}`)
     } catch (error: any) {
-      console.error("Error joining room:", error);
-      alert(error.message || "Failed to join the game. Please check the code and try again.");
+      console.error("Error joining room:", error)
+
+      if (error.message?.includes('full')) {
+        gameToasts.roomFull()
+      } else if (error.message?.includes('not found')) {
+        gameToasts.gameNotFound()
+      } else if (error.message?.includes('bot game')) {
+        showError("Cannot Join", "This is a bot game and cannot be joined")
+      } else {
+        showError("Failed to join game", error.message || "Please check the code and try again")
+      }
     } finally {
-      setJoiningRoom(false);
+      setJoiningRoom(false)
     }
   }
 
