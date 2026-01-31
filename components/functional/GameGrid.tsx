@@ -6,7 +6,7 @@ import { IGameData, IShipsLocation } from '@/types/game'
 import { Button } from '../ui/button'
 import { makeAttack, setPlayerReady } from '@/hooks/game'
 import { Lightbulb, RotateCw } from 'lucide-react'
-import { gameToasts, showError } from '@/lib/toasts'
+import { gameToasts, showError, showInfo } from '@/lib/toasts'
 
 const SIZE = 10
 
@@ -36,6 +36,7 @@ export default function GameGrid({
     const [hoveredCells, setHoveredCells] = useState<Set<string>>(new Set())
     const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
     const [isAttacking, setIsAttacking] = useState(false)
+    const [shipOrientation, setShipOrientation] = useState<'horizontal' | 'vertical'>('horizontal')
 
     const showShipPlacement = isYourBoard && !isReady && status === 'setup'
     const showShips = isYourBoard
@@ -78,10 +79,16 @@ export default function GameGrid({
         }
     }
 
-    const generateShipCells = (startRow: number, startCol: number, length: number): string[] => {
+    const generateShipCells = (startRow: number, startCol: number, length: number, orientation?: 'horizontal' | 'vertical'): string[] => {
         const cells: string[] = []
+        const currentOrientation = orientation || shipOrientation
+
         for (let i = 0; i < length; i++) {
-            cells.push(`${startRow}-${startCol + i}`)
+            if (currentOrientation === 'horizontal') {
+                cells.push(`${startRow}-${startCol + i}`)
+            } else {
+                cells.push(`${startRow + i}-${startCol}`)
+            }
         }
         return cells
     }
@@ -115,6 +122,76 @@ export default function GameGrid({
         })
 
         return !hasCollision && !outOfBounds && !hasBufferViolation
+    }
+
+    const handleRotateShip = (cellId: string) => {
+        // Find the ship that contains this cell
+        const shipToRotate = ships.find(ship =>
+            ship.ship_coordinates.includes(cellId)
+        )
+
+        if (!shipToRotate) return
+
+        const coords = shipToRotate.ship_coordinates
+
+        // Determine current orientation
+        const firstCell = coords[0]
+        const secondCell = coords[1]
+        const [row1, col1] = firstCell.split('-').map(Number)
+        const [row2, col2] = secondCell.split('-').map(Number)
+
+        const isHorizontal = row1 === row2 // Same row = horizontal
+
+        // Find the starting cell (top-left corner)
+        const rows = coords.map(c => Number(c.split('-')[0]))
+        const cols = coords.map(c => Number(c.split('-')[1]))
+        const minRow = Math.min(...rows)
+        const minCol = Math.min(...cols)
+
+        // Generate new coordinates with rotated orientation
+        const newCells: string[] = []
+        const shipLength = shipToRotate.ship_info.length
+
+        if (isHorizontal) {
+            // Rotate to vertical
+            for (let i = 0; i < shipLength; i++) {
+                newCells.push(`${minRow + i}-${minCol}`)
+            }
+        } else {
+            // Rotate to horizontal
+            for (let i = 0; i < shipLength; i++) {
+                newCells.push(`${minRow}-${minCol + i}`)
+            }
+        }
+
+        // Temporarily remove the ship we're rotating for validation
+        const otherShips = ships.filter(s => s.ship_info.id !== shipToRotate.ship_info.id)
+        const tempShips = ships
+        setShips(otherShips)
+
+        // Check if new position is valid
+        const isValid = isValidPlacement(newCells)
+
+        if (isValid) {
+            // Valid rotation - update ship with new coordinates
+            setShips([
+                ...otherShips,
+                {
+                    ...shipToRotate,
+                    ship_coordinates: newCells
+                }
+            ])
+            showInfo('Ship Rotated', `${shipToRotate.ship_info.name} rotated`)
+        } else {
+            // Invalid rotation - restore original
+            setShips(tempShips)
+            showError('Cannot Rotate', 'Not enough space to rotate this ship')
+        }
+    }
+
+    const toggleOrientation = () => {
+        setShipOrientation(prev => prev === 'horizontal' ? 'vertical' : 'horizontal')
+        showInfo('Orientation Changed', `Ships will be placed ${shipOrientation === 'horizontal' ? 'vertically' : 'horizontally'}`)
     }
 
     useDndMonitor({
@@ -241,6 +318,7 @@ export default function GameGrid({
                                             col={col}
                                             row={row}
                                             handleCellAttack={handleCellAttack}
+                                            onShipDoubleClick={showShipPlacement && hasShip ? () => handleRotateShip(cellId) : undefined}
                                         />
                                     )
                                 })
@@ -257,12 +335,29 @@ export default function GameGrid({
         return (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                 {/* Left side - Grid (7 columns) */}
-                <div className="lg:col-span-7 flex flex-col items-center">
+                <div className="lg:col-span-7 space-y-6 flex flex-col items-center">
+                    {/* Orientation Toggle */}
+                    <div className="bg-white h-14 px-4 flex items-center rounded-2xl shadow-sm border border-[#bae6fd]">
+                        <div className="flex items-center justify-between gap-4">
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                                Orientation: {shipOrientation}
+                            </span>
+                            <Button
+                                onClick={toggleOrientation}
+                                variant="ghost"
+                                className="flex items-center gap-2 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-blue-600 px-4 py-2 rounded-lg font-medium transition-all cursor-pointer"
+                            >
+                                <RotateCw className="w-4 h-4" />
+                                Toggle
+                            </Button>
+                        </div>
+                    </div>
                     <GridComponent />
                 </div>
 
                 {/* Right side - Controls (5 columns) */}
                 <div className="lg:col-span-5 space-y-6">
+
                     {/* Ready Button */}
                     <Button
                         disabled={ships.length !== 5}
@@ -271,6 +366,7 @@ export default function GameGrid({
                     >
                         I'm Ready!
                     </Button>
+
                     {/* Ship Selection */}
                     <GameShips
                         isReady={isReady}
@@ -278,7 +374,7 @@ export default function GameGrid({
                         onRemoveShip={handleRemoveShip}
                     />
 
-                    <div className="bg-linear-to-br from-sky-50 to-blue-50 p-6 rounded-2xl shadow-sm border-2 border-sky-200">
+                    <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-6 rounded-2xl shadow-sm border-2 border-sky-200">
                         <h3 className="text-sm font-bold text-sky-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Lightbulb size={20} />
                             Quick Tips
@@ -286,7 +382,11 @@ export default function GameGrid({
                         <div className="space-y-3 text-sm text-slate-700">
                             <div className="flex items-start gap-2">
                                 <span className="text-sky-500 font-bold">•</span>
-                                <span>Drag ships from the list below to place them on the grid</span>
+                                <span>Drag ships to place them on the grid</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-sky-500 font-bold">•</span>
+                                <span><strong>Double-click</strong> a ship on the grid to rotate it</span>
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="text-sky-500 font-bold">•</span>
@@ -294,11 +394,7 @@ export default function GameGrid({
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="text-sky-500 font-bold">•</span>
-                                <span>Place all 5 ships to start the battle</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <span className="text-sky-500 font-bold">•</span>
-                                <span>Click on "Return" to remove ship from the grid</span>
+                                <span>Click "Return" to remove a ship from grid</span>
                             </div>
                         </div>
                         <div className="mt-4 pt-4 border-t border-sky-200">
