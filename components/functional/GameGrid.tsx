@@ -5,7 +5,7 @@ import { useDndMonitor } from '@dnd-kit/core'
 import { IGameData, IShipsLocation } from '@/types/game'
 import { Button } from '../ui/button'
 import { makeAttack, setPlayerReady } from '@/hooks/game'
-import { RotateCw } from 'lucide-react'
+import { Lightbulb, RotateCw } from 'lucide-react'
 
 const SIZE = 10
 
@@ -188,7 +188,7 @@ export default function GameGrid({
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#bae6fd]">
             <div className="flex">
                 {/* Row labels */}
-                <div className="flex flex-col pt-12 pr-2">
+                <div className="flex flex-col pt-6 pr-2">
                     {Array.from({ length: SIZE }, (_, i) => (
                         <div key={i} className="h-12 flex items-center justify-center text-[10px] font-bold text-slate-400">
                             {String.fromCharCode(65 + i)}
@@ -251,31 +251,15 @@ export default function GameGrid({
                 </div>
 
                 {/* Right side - Controls (5 columns) */}
-                <div className="lg:col-span-5 space-y-8">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#bae6fd]">
-                        <div className="flex items-center justify-between mb-6">
-                            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                                Orientation
-                            </span>
-                            <Button
-                                variant="ghost"
-                                className="flex items-center gap-2 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-blue-600 px-4 py-2 rounded-lg font-medium transition-all group cursor-pointer"
-                            >
-                                <RotateCw className="w-4 h-4 group-active:rotate-90 transition-transform" />
-                                Rotate
-                            </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            <Button
-                                onClick={handleClear}
-                                variant="outline"
-                                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
-                            >
-                                Clear
-                            </Button>
-                        </div>
-                    </div>
-
+                <div className="lg:col-span-5 space-y-6">
+                    {/* Ready Button */}
+                    <Button
+                        disabled={ships.length !== 5}
+                        onClick={handleSetPlayerReady}
+                        className="w-full py-7 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-bold text-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 cursor-pointer"
+                    >
+                        I'm Ready!
+                    </Button>
                     {/* Ship Selection */}
                     <GameShips
                         isReady={isReady}
@@ -283,17 +267,39 @@ export default function GameGrid({
                         onRemoveShip={handleRemoveShip}
                     />
 
-                    {/* Ready Button */}
-                    <Button
-                        disabled={ships.length !== 5}
-                        onClick={handleSetPlayerReady}
-                        className="w-full py-7 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-bold text-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 cursor-pointer"
-                    >
-                        Start Game
-                    </Button>
-                    <p className="text-center text-xs text-slate-400 font-medium uppercase tracking-widest">
-                        {ships.length === 5 ? 'Ready to begin battle' : 'Place all ships to begin battle'}
-                    </p>
+                    <div className="bg-linear-to-br from-sky-50 to-blue-50 p-6 rounded-2xl shadow-sm border-2 border-sky-200">
+                        <h3 className="text-sm font-bold text-sky-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Lightbulb size={20} />
+                            Quick Tips
+                        </h3>
+                        <div className="space-y-3 text-sm text-slate-700">
+                            <div className="flex items-start gap-2">
+                                <span className="text-sky-500 font-bold">•</span>
+                                <span>Drag ships from the list below to place them on the grid</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-sky-500 font-bold">•</span>
+                                <span>Ships must have 1 cell spacing between them</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-sky-500 font-bold">•</span>
+                                <span>Place all 5 ships to start the battle</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-sky-500 font-bold">•</span>
+                                <span>Click on a placed ship to remove it</span>
+                            </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-sky-200">
+                            <Button
+                                onClick={handleClear}
+                                variant="outline"
+                                className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer border-2 border-sky-300 hover:border-red-400 hover:bg-red-50 hover:text-red-600"
+                            >
+                                Clear All Ships
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         )

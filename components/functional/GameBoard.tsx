@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import GameGrid from './GameGrid'
 import { DndContext } from '@dnd-kit/core'
 import { checkOpponentConnection, executeBotTurn, forfeitGame, makeRandomAttack, markPlayerDisconnected, updatePresence } from '@/hooks/game'
-import { Undo2 } from 'lucide-react'
+import { TriangleAlert, Undo2 } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -16,6 +16,7 @@ import {
 import { DialogClose } from '@radix-ui/react-dialog'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import GameOverBanner from './GameOverBanner'
 
 const TURN_TIME_LIMIT = 60 // 60 seconds
 const PRESENCE_INTERVAL = 5000 // Send heartbeat every 5 seconds
@@ -241,12 +242,13 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
             <Dialog>
                 <DialogTrigger asChild>
                     <div className="absolute top-6 left-6">
-                        <button
-                            className="flex items-center gap-1 text-slate-600 hover:text-red-600 transition-colors cursor-pointer px-4 py-2 rounded-lg hover:bg-red-50"
+                        <Button
+                            variant="ghost"
+                            className="flex items-center gap-1 text-slate-600 hover:text-red-600 transition-colors cursor-pointer"
                         >
                             <Undo2 className="w-5 h-5" />
                             <span className="text-sm font-semibold">Leave</span>
-                        </button>
+                        </Button>
                     </div>
                 </DialogTrigger>
                 <DialogContent className="rounded-3xl max-w-md">
@@ -262,7 +264,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                         {/* Warning Box */}
                         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                             <div className="flex items-start gap-3">
-                                <div className="text-red-500 text-2xl">⚠️</div>
+                                <TriangleAlert size={20} className="text-red-500 mt-1" />
                                 <div>
                                     <h4 className="font-bold text-red-900 mb-1">Consequences:</h4>
                                     <ul className="text-sm text-red-800 space-y-1">
@@ -279,7 +281,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             <DialogClose asChild>
                                 <Button
                                     variant="outline"
-                                    className="flex-1 py-6 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                                    className="flex-1 py-6 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all cursor-pointer"
                                 >
                                     Cancel
                                 </Button>
@@ -287,7 +289,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                             <DialogClose asChild>
                                 <Button
                                     onClick={() => handleLeaveGame(gameState)}
-                                    className="flex-1 py-6 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-200 transition-all"
+                                    className="flex-1 py-6 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-200 transition-all cursor-pointer"
                                 >
                                     Leave Battle
                                 </Button>
@@ -330,29 +332,11 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                 )}
                 {/* Game Over Banner */}
                 {(gameState.status === 'finished' || gameState.status === 'abandoned') && (
-                    <div className={`mb-8 p-6 bg-linear-to-r text-white rounded-2xl text-center shadow-xl ${(isPlayer1 && gameState.winner === gameState.player1_id) ||
-                        (isPlayer2 && gameState.winner === gameState.player2_id)
-                        ? 'from-green-500 to-emerald-500'
-                        : 'from-red-500 to-rose-500'
-                        }`}>
-                        <h2 className="text-3xl font-black mb-2">
-                            {(isPlayer1 && gameState.winner === gameState.player1_id) ||
-                                (isPlayer2 && gameState.winner === gameState.player2_id)
-                                ? '🎉 Victory!'
-                                : '💔 Defeat'}
-                        </h2>
-                        <p className="text-lg opacity-90">
-                            {gameState.status === 'abandoned'
-                                ? (isPlayer1 && gameState.winner === gameState.player1_id) ||
-                                    (isPlayer2 && gameState.winner === gameState.player2_id)
-                                    ? 'Opponent abandoned the game!'
-                                    : 'You abandoned the game!'
-                                : (isPlayer1 && gameState.winner === gameState.player1_id) ||
-                                    (isPlayer2 && gameState.winner === gameState.player2_id)
-                                    ? 'You have destroyed the enemy fleet!'
-                                    : 'Your fleet has been destroyed!'}
-                        </p>
-                    </div>
+                    <GameOverBanner
+                        gameState={gameState}
+                        isWinner={(isPlayer1 && gameState.winner === gameState.player1_id) ||
+                            (isPlayer2 && gameState.winner === gameState.player2_id)}
+                    />
                 )}
 
                 {/* Setup Phase - Single Board Centered */}
