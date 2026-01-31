@@ -124,71 +124,6 @@ export default function GameGrid({
         return !hasCollision && !outOfBounds && !hasBufferViolation
     }
 
-    const handleRotateShip = (cellId: string) => {
-        // Find the ship that contains this cell
-        const shipToRotate = ships.find(ship =>
-            ship.ship_coordinates.includes(cellId)
-        )
-
-        if (!shipToRotate) return
-
-        const coords = shipToRotate.ship_coordinates
-
-        // Determine current orientation
-        const firstCell = coords[0]
-        const secondCell = coords[1]
-        const [row1, col1] = firstCell.split('-').map(Number)
-        const [row2, col2] = secondCell.split('-').map(Number)
-
-        const isHorizontal = row1 === row2 // Same row = horizontal
-
-        // Find the starting cell (top-left corner)
-        const rows = coords.map(c => Number(c.split('-')[0]))
-        const cols = coords.map(c => Number(c.split('-')[1]))
-        const minRow = Math.min(...rows)
-        const minCol = Math.min(...cols)
-
-        // Generate new coordinates with rotated orientation
-        const newCells: string[] = []
-        const shipLength = shipToRotate.ship_info.length
-
-        if (isHorizontal) {
-            // Rotate to vertical
-            for (let i = 0; i < shipLength; i++) {
-                newCells.push(`${minRow + i}-${minCol}`)
-            }
-        } else {
-            // Rotate to horizontal
-            for (let i = 0; i < shipLength; i++) {
-                newCells.push(`${minRow}-${minCol + i}`)
-            }
-        }
-
-        // Temporarily remove the ship we're rotating for validation
-        const otherShips = ships.filter(s => s.ship_info.id !== shipToRotate.ship_info.id)
-        const tempShips = ships
-        setShips(otherShips)
-
-        // Check if new position is valid
-        const isValid = isValidPlacement(newCells)
-
-        if (isValid) {
-            // Valid rotation - update ship with new coordinates
-            setShips([
-                ...otherShips,
-                {
-                    ...shipToRotate,
-                    ship_coordinates: newCells
-                }
-            ])
-            showInfo('Ship Rotated', `${shipToRotate.ship_info.name} rotated`)
-        } else {
-            // Invalid rotation - restore original
-            setShips(tempShips)
-            showError('Cannot Rotate', 'Not enough space to rotate this ship')
-        }
-    }
-
     const toggleOrientation = () => {
         setShipOrientation(prev => prev === 'horizontal' ? 'vertical' : 'horizontal')
         showInfo('Orientation Changed', `Ships will be placed ${shipOrientation === 'horizontal' ? 'vertically' : 'horizontally'}`)
@@ -318,7 +253,6 @@ export default function GameGrid({
                                             col={col}
                                             row={row}
                                             handleCellAttack={handleCellAttack}
-                                            onShipDoubleClick={showShipPlacement && hasShip ? () => handleRotateShip(cellId) : undefined}
                                         />
                                     )
                                 })
@@ -374,7 +308,7 @@ export default function GameGrid({
                         onRemoveShip={handleRemoveShip}
                     />
 
-                    <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-6 rounded-2xl shadow-sm border-2 border-sky-200">
+                    <div className="bg-lienar-to-br from-sky-50 to-blue-50 p-6 rounded-2xl shadow-sm border-2 border-sky-200">
                         <h3 className="text-sm font-bold text-sky-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Lightbulb size={20} />
                             Quick Tips
