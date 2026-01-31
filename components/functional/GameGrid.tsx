@@ -287,7 +287,7 @@ export default function GameGrid({
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="text-sky-500 font-bold">•</span>
-                                <span>Click on a placed ship to remove it</span>
+                                <span>Click on "Return" to remove ship from the grid</span>
                             </div>
                         </div>
                         <div className="mt-4 pt-4 border-t border-sky-200">
