@@ -270,15 +270,12 @@ export default function Home() {
             © 2026 Naval Command Operations
           </p>
           <div className="flex gap-8">
-            <a className="text-[10px] font-black text-slate-400 hover:text-sky-500 uppercase tracking-widest transition-colors" href="#">
+            <Link href="/privacy" className="text-[10px] font-black text-slate-400 hover:text-sky-500 uppercase tracking-widest transition-colors">
               Privacy
-            </a>
-            <a className="text-[10px] font-black text-slate-400 hover:text-sky-500 uppercase tracking-widest transition-colors" href="#">
+            </Link>
+            <Link href="/terms" className="text-[10px] font-black text-slate-400 hover:text-sky-500 uppercase tracking-widest transition-colors">
               Terms
-            </a>
-            <a className="text-[10px] font-black text-slate-400 hover:text-sky-500 uppercase tracking-widest transition-colors" href="#">
-              Support
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
