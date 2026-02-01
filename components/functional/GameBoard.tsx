@@ -318,39 +318,33 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                     </p>
                 </div>
 
-                {/* Timer Display - Minimal */}
-                {gameState.status === 'active' && isMyTurn && (
+                {/* Timer Display - Horizontal Compact */}
+                {gameState.status === 'active' && (
                     <div className="mb-8 flex justify-center">
-                        <div className="inline-flex items-center gap-4 bg-white rounded-2xl shadow-lg border-2 border-[#bae6fd] px-8 py-4">
-                            <div className={`p-3 rounded-full ${timeLeft <= 10
-                                ? 'bg-red-100 animate-pulse'
-                                : timeLeft <= 30
-                                    ? 'bg-orange-100'
-                                    : 'bg-sky-100'
+                        {isMyTurn ? (
+                            <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg border-2 transition-all min-w-[280px] h-[60px] justify-center ${timeLeft <= 10
+                                    ? 'bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 animate-pulse'
+                                    : timeLeft <= 30
+                                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white border-orange-300'
+                                        : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300'
                                 }`}>
-                                <Target className={`w-6 h-6 ${timeLeft <= 10
-                                    ? 'text-red-600'
-                                    : timeLeft <= 30
-                                        ? 'text-orange-600'
-                                        : 'text-sky-600'
-                                    }`} />
-                            </div>
-                            <div>
-                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                    Time Remaining
-                                </div>
-                                <div className={`text-3xl font-black ${timeLeft <= 10
-                                    ? 'text-red-600'
-                                    : timeLeft <= 30
-                                        ? 'text-orange-600'
-                                        : 'text-sky-600'
-                                    }`}>
+                                <Target className="w-5 h-5" />
+                                <span className="text-sm font-bold uppercase tracking-wider">Your Turn</span>
+                                <span className="text-2xl font-black border-l-2 border-white/30 pl-3 ml-2">
                                     {formatTime(timeLeft)}
-                                </div>
+                                </span>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-600 rounded-xl shadow-lg border-2 border-slate-200 min-w-[280px] h-[60px] justify-center">
+                                <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                                <span className="text-sm font-semibold uppercase tracking-wider">
+                                    Opponent's Turn
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
+
                 {/* Game Over Banner */}
                 {(gameState.status === 'finished' || gameState.status === 'abandoned') && (
                     <GameOverBanner

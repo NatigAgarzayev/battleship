@@ -5,10 +5,11 @@ import { useDndMonitor } from '@dnd-kit/core'
 import { IGameData, IShipsLocation } from '@/types/game'
 import { Button } from '../ui/button'
 import { makeAttack, setPlayerReady } from '@/hooks/game'
-import { Lightbulb, RotateCw } from 'lucide-react'
+import { Lightbulb, RotateCw, Target } from 'lucide-react'
 import { gameToasts, showError, showInfo } from '@/lib/toasts'
 
 const SIZE = 10
+const TURN_TIME_LIMIT = 60 // 60 seconds
 
 interface GameGridProps {
     gameCode: string
@@ -37,6 +38,7 @@ export default function GameGrid({
     const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
     const [isAttacking, setIsAttacking] = useState(false)
     const [shipOrientation, setShipOrientation] = useState<'horizontal' | 'vertical'>('horizontal')
+    const [timeLeft, setTimeLeft] = useState(TURN_TIME_LIMIT)
 
     const showShipPlacement = isYourBoard && !isReady && status === 'setup'
     const showShips = isYourBoard
@@ -127,6 +129,12 @@ export default function GameGrid({
     const toggleOrientation = () => {
         setShipOrientation(prev => prev === 'horizontal' ? 'vertical' : 'horizontal')
         showInfo('Orientation Changed', `Ships will be placed ${shipOrientation === 'horizontal' ? 'vertically' : 'horizontally'}`)
+    }
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${mins}:${secs.toString().padStart(2, '0')}`
     }
 
     useDndMonitor({
@@ -348,17 +356,7 @@ export default function GameGrid({
 
     // Active/Finished phase layout - just the grid centered
     return (
-        <div className="flex flex-col items-center">
-            {/* Turn Indicator for active game */}
-            {status === 'active' && (
-                <div className={`mb-6 w-full max-w-2xl p-4 rounded-xl text-center font-bold ${isYourTurn && !isYourBoard
-                    ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                    : 'bg-slate-100 text-slate-600'
-                    }`}>
-                    {isYourTurn && !isYourBoard ? '🎯 Your Turn - Select a target!' : '⏳ Opponent\'s Turn'}
-                </div>
-            )}
-
+        <div className="flex flex-col items-center relative">
             <GridComponent />
         </div>
     )

@@ -36,7 +36,7 @@ export default function RulesPage() {
                 <div className="space-y-6">
                     {/* Game Objective */}
                     <Card className="rounded-2xl shadow-lg border-2 border-[#bae6fd] overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-500 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-500 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Game Objective</h2>
@@ -52,7 +52,7 @@ export default function RulesPage() {
 
                     {/* Your Fleet */}
                     <Card className="rounded-2xl shadow-lg border-2 border-[#bae6fd] overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-500 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-500 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Ship className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Your Fleet</h2>
@@ -114,7 +114,7 @@ export default function RulesPage() {
 
                     {/* Setup Phase */}
                     <Card className="rounded-2xl shadow-lg border-2 border-[#bae6fd] overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-500 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-500 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Grid3x3 className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Setup Phase</h2>
