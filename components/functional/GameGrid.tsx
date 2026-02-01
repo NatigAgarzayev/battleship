@@ -9,7 +9,6 @@ import { Lightbulb, RotateCw, Target } from 'lucide-react'
 import { gameToasts, showError, showInfo } from '@/lib/toasts'
 
 const SIZE = 10
-const TURN_TIME_LIMIT = 60 // 60 seconds
 
 interface GameGridProps {
     gameCode: string
@@ -38,7 +37,6 @@ export default function GameGrid({
     const [ships, setShips] = useState<IShipsLocation[]>(playerShips || [])
     const [isAttacking, setIsAttacking] = useState(false)
     const [shipOrientation, setShipOrientation] = useState<'horizontal' | 'vertical'>('horizontal')
-    const [timeLeft, setTimeLeft] = useState(TURN_TIME_LIMIT)
 
     const showShipPlacement = isYourBoard && !isReady && status === 'setup'
     const showShips = isYourBoard

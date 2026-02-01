@@ -26,8 +26,8 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
             })
             setShowConfetti(true)
 
-            // Stop confetti after 5 seconds
-            const timer = setTimeout(() => setShowConfetti(false), 5000)
+            // Stop confetti after 10 seconds
+            const timer = setTimeout(() => setShowConfetti(false), 10000)
             return () => clearTimeout(timer)
         }
     }, [isWinner])
