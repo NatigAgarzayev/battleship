@@ -322,11 +322,11 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                 {gameState.status === 'active' && (
                     <div className="mb-8 flex justify-center">
                         {isMyTurn ? (
-                            <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg border-2 transition-all min-w-[280px] h-[60px] justify-center ${timeLeft <= 10
-                                    ? 'bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 animate-pulse'
-                                    : timeLeft <= 30
-                                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white border-orange-300'
-                                        : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300'
+                            <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg border-2 transition-all min-w-70 h-15 justify-center ${timeLeft <= 10
+                                ? 'bg-linear-to-r from-red-400 to-red-500 text-white border-red-300 animate-pulse'
+                                : timeLeft <= 30
+                                    ? 'bg-linear-to-r from-orange-400 to-orange-500 text-white border-orange-300'
+                                    : 'bg-linear-to-r from-green-400 to-emerald-500 text-white border-green-300'
                                 }`}>
                                 <Target className="w-5 h-5" />
                                 <span className="text-sm font-bold uppercase tracking-wider">Your Turn</span>
@@ -335,7 +335,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                                 </span>
                             </div>
                         ) : (
-                            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-600 rounded-xl shadow-lg border-2 border-slate-200 min-w-[280px] h-[60px] justify-center">
+                            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-600 rounded-xl shadow-lg border-2 border-slate-200 min-w-70 h-15 justify-center">
                                 <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
                                 <span className="text-sm font-semibold uppercase tracking-wider">
                                     Opponent's Turn

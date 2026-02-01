@@ -176,7 +176,7 @@ export default function RulesPage() {
 
                     {/* Battle Phase */}
                     <Card className="rounded-2xl shadow-lg border-2 border-[#bae6fd] overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-500 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-500 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Target className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Battle Phase</h2>
@@ -230,7 +230,7 @@ export default function RulesPage() {
 
                     {/* Game Modes */}
                     <Card className="rounded-2xl shadow-lg border-2 border-[#bae6fd] overflow-hidden">
-                        <div className="bg-gradient-to-r from-sky-500 to-blue-500 p-6 text-white">
+                        <div className="bg-linear-to-r from-sky-500 to-blue-500 p-6 text-white">
                             <div className="flex items-center gap-3">
                                 <Users className="w-8 h-8" />
                                 <h2 className="text-2xl font-black uppercase italic">Game Modes</h2>
@@ -261,7 +261,7 @@ export default function RulesPage() {
                     </Card>
 
                     {/* Pro Tips */}
-                    <Card className="rounded-2xl shadow-lg border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
+                    <Card className="rounded-2xl shadow-lg border-2 border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 overflow-hidden">
                         <CardContent className="p-8">
                             <h3 className="font-black text-2xl text-slate-900 mb-6 flex items-center gap-2">
                                 <Lightbulb className="w-8 h-8 text-amber-600" />

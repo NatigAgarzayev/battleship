@@ -214,7 +214,7 @@ export default function Home() {
                         <Button
                           disabled={joiningRoom}
                           className="w-full py-6 bg-sky-500 hover:bg-sky-600 rounded-2xl font-black uppercase shadow-lg shadow-sky-500/25 cursor-pointer"
-                          onClick={handleJoinRoom}
+                          onClick={() => handleJoinRoom()}
                         >
                           {joiningRoom ? 'Joining Battle...' : 'Join Battle'}
                         </Button>
