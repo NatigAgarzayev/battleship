@@ -33,10 +33,8 @@ export default function Home() {
 
     if (invitedCode) {
       setRoomCode(invitedCode)
-      handleAutoJoin(invitedCode)
+      handleJoinRoom(invitedCode)
     }
-
-    router.replace(window.location.pathname)
   }, [])
 
   const handleCreateRoom = async () => {
@@ -55,46 +53,13 @@ export default function Home() {
     }
   }
 
-  const handleAutoJoin = async (code: string) => {
+  const handleJoinRoom = async (invitedCode?: string) => {
     try {
       setJoiningRoom(true)
-      const trimmedCode = code.trim().toUpperCase()
 
-      if (trimmedCode.length === 0) {
-        gameToasts.invalidGameCode()
-        return
-      }
-
-      const joinedRoom = await joinGame(trimmedCode, nickname || undefined)
-
-      if (!joinedRoom) {
-        gameToasts.gameNotFound()
-        return
-      }
-
-      gameToasts.joinedGame()
-      router.push(`/battle/${trimmedCode}`)
-    } catch (error: any) {
-      console.error("Error joining room:", error)
-
-      if (error.message?.includes('full')) {
-        gameToasts.roomFull()
-      } else if (error.message?.includes('not found')) {
-        gameToasts.gameNotFound()
-      } else if (error.message?.includes('bot game')) {
-        showError("Cannot Join", "This is a bot game and cannot be joined")
-      } else {
-        showError("Failed to join game", error.message || "Please check the code and try again")
-      }
-    } finally {
-      setJoiningRoom(false)
-    }
-  }
-
-  const handleJoinRoom = async () => {
-    try {
-      setJoiningRoom(true)
-      const trimmedCode = roomCode.trim().toUpperCase()
+      // Use invited code from URL or manual input
+      const codeToJoin = invitedCode || roomCode
+      const trimmedCode = codeToJoin.trim().toUpperCase()
 
       if (trimmedCode.length === 0) {
         gameToasts.invalidGameCode()
@@ -248,7 +213,7 @@ export default function Home() {
                         />
                         <Button
                           disabled={joiningRoom}
-                          className="w-full py-6 bg-sky-500 hover:bg-sky-600 rounded-2xl font-black uppercase shadow-lg shadow-sky-500/25"
+                          className="w-full py-6 bg-sky-500 hover:bg-sky-600 rounded-2xl font-black uppercase shadow-lg shadow-sky-500/25 cursor-pointer"
                           onClick={handleJoinRoom}
                         >
                           {joiningRoom ? 'Joining Battle...' : 'Join Battle'}
