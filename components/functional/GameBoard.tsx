@@ -32,8 +32,8 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
 
     const router = useRouter()
 
-    const presenceIntervalRef = useRef<NodeJS.Timeout>()
-    const disconnectCheckRef = useRef<NodeJS.Timeout>()
+    const presenceIntervalRef = useRef<NodeJS.Timeout | null>(null)
+    const disconnectCheckRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         const playerId = localStorage.getItem('currentPlayerId')
