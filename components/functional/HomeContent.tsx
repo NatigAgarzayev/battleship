@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { createGame, joinGame } from "@/hooks/game"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Anchor, Ship, Users, User, Bot, CirclePlus } from "lucide-react"
+import { Anchor, Ship, Users, User, Bot, CirclePlus, Github } from "lucide-react"
 import Link from "next/link"
 import { gameToasts, showError } from '@/lib/toasts'
 
@@ -96,13 +96,23 @@ export default function HomeContent() {
             backgroundSize: '40px 40px'
         }}>
             {/* Header */}
+
             <header className="w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
                 <div className="flex items-center gap-2">
                     <Anchor className="text-sky-500 w-8 h-8" />
                     <span className="text-xl font-black tracking-tight text-slate-900 uppercase italic">Battleship</span>
                 </div>
                 <div className="flex gap-6 items-center">
-                    <Link href="/rules" className="text-sm font-bold text-slate-500 hover:text-sky-500 uppercase tracking-widest">
+                    <Link
+                        href="https://github.com/NatigAgarzayev/battleship"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-sky-500 transition-colors"
+                        aria-label="GitHub Profile"
+                    >
+                        <Github className="w-6 h-6" />
+                    </Link>
+                    <Link href="/rules" className="text-sm font-bold text-slate-500 hover:text-sky-500 uppercase tracking-widest transition-colors">
                         How to Play
                     </Link>
                 </div>
