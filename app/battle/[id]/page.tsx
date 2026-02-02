@@ -91,7 +91,7 @@ export default function Battle({ params }: { params: Promise<{ id: string }> }) 
         <div className="bg-[#f0f9ff] min-h-screen bg-cover flex flex-col items-center justify-center p-4">
 
             {
-                (gameState.status !== 'active' && gameState.status !== 'finished') && (
+                (gameState.status !== 'active' && gameState.status !== 'finished' && gameState.status !== 'abandoned' && gameState.game_type !== "bot") && (
                     <GameCode gameCode={gameState.game_code} />
                 )
             }
