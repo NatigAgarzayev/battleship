@@ -1,10 +1,11 @@
 'use client'
 import { IGameData } from '@/types/game'
 import { Button } from '@/components/ui/button'
-import { Trophy, Skull, Home, Target } from 'lucide-react'
+import { Trophy, Skull, Home, Target, Ship } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
+import Link from 'next/link'
 
 interface GameOverBannerProps {
     gameState: IGameData
@@ -26,8 +27,8 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
             })
             setShowConfetti(true)
 
-            // Stop confetti after 10 seconds
-            const timer = setTimeout(() => setShowConfetti(false), 10000)
+            // Stop confetti after 5 seconds
+            const timer = setTimeout(() => setShowConfetti(false), 5000)
             return () => clearTimeout(timer)
         }
     }, [isWinner])
@@ -42,6 +43,36 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
             ? 'You have destroyed the enemy fleet!'
             : 'Your fleet has been destroyed!'
     }
+
+    // Calculate ships destroyed (each ship sunk = 1)
+    const getShipsDestroyed = (ships: IGameData['player1_ships'] | IGameData['player2_ships'], shots: string[]) => {
+        if (!ships) return 0
+
+        return ships.filter(ship => {
+            // Check if all coordinates of this ship have been hit
+            return ship.ship_coordinates.every(coord => shots.includes(coord))
+        }).length
+    }
+
+    const yourShipsDestroyed = isWinner
+        ? getShipsDestroyed(
+            gameState.player1_id === gameState.winner ? gameState.player2_ships : gameState.player1_ships,
+            gameState.player1_id === gameState.winner ? gameState.player1_shots : gameState.player2_shots
+        )
+        : getShipsDestroyed(
+            gameState.player1_id === gameState.winner ? gameState.player1_ships : gameState.player2_ships,
+            gameState.player1_id === gameState.winner ? gameState.player2_shots : gameState.player1_shots
+        )
+
+    const enemyShipsDestroyed = isWinner
+        ? getShipsDestroyed(
+            gameState.player1_id === gameState.winner ? gameState.player1_ships : gameState.player2_ships,
+            gameState.player1_id === gameState.winner ? gameState.player2_shots : gameState.player1_shots
+        )
+        : getShipsDestroyed(
+            gameState.player1_id === gameState.winner ? gameState.player2_ships : gameState.player1_ships,
+            gameState.player1_id === gameState.winner ? gameState.player1_shots : gameState.player2_shots
+        )
 
     return (
         <>
@@ -62,11 +93,11 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
                     {/* Icon */}
                     <div className="flex justify-center mb-6">
                         {isWinner ? (
-                            <div className="bg-linear-to-br from-sky-400 to-blue-500 p-6 rounded-full shadow-xl border-4 border-sky-300 animate-bounce">
+                            <div className="bg-gradient-to-br from-sky-400 to-blue-500 p-6 rounded-full shadow-xl border-4 border-sky-300 animate-bounce">
                                 <Trophy className="w-16 h-16 text-white" />
                             </div>
                         ) : (
-                            <div className="bg-linear-to-br from-slate-700 to-slate-800 p-6 rounded-full shadow-xl border-4 border-slate-600">
+                            <div className="bg-gradient-to-br from-slate-700 to-slate-800 p-6 rounded-full shadow-xl border-4 border-slate-600">
                                 <Skull className="w-16 h-16 text-slate-200" />
                             </div>
                         )}
@@ -88,24 +119,20 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             <div className="bg-[#f0f9ff] p-5 rounded-2xl border-2 border-[#bae6fd] shadow-sm">
                                 <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-2 font-semibold uppercase tracking-wider">
-                                    <Target className="w-4 h-4" />
-                                    Your Shots
+                                    <Ship className="w-4 h-4" />
+                                    Ships Destroyed
                                 </div>
                                 <div className="text-4xl font-black text-slate-900 text-center">
-                                    {gameState.player1_id === gameState.winner
-                                        ? gameState.player1_shots.length
-                                        : gameState.player2_shots.length}
+                                    {yourShipsDestroyed}/5
                                 </div>
                             </div>
                             <div className="bg-[#f0f9ff] p-5 rounded-2xl border-2 border-[#bae6fd] shadow-sm">
                                 <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-2 font-semibold uppercase tracking-wider">
-                                    <Target className="w-4 h-4" />
-                                    Enemy Shots
+                                    <Ship className="w-4 h-4" />
+                                    Ships Lost
                                 </div>
                                 <div className="text-4xl font-black text-slate-900 text-center">
-                                    {gameState.player1_id === gameState.winner
-                                        ? gameState.player2_shots.length
-                                        : gameState.player1_shots.length}
+                                    {enemyShipsDestroyed}/5
                                 </div>
                             </div>
                         </div>
@@ -113,13 +140,12 @@ export default function GameOverBanner({ gameState, isWinner }: GameOverBannerPr
 
                     {/* Action Button */}
                     <div className="flex justify-center">
-                        <Button
-                            onClick={() => router.push('/')}
-                            className="flex gap-3 items-center bg-blue-500 hover:bg-blue-600 text-white px-8 py-7 rounded-2xl font-black text-lg shadow-lg shadow-blue-200 hover:scale-105 transition-all uppercase tracking-tight cursor-pointer"
-                        >
-                            <Home size={20} />
-                            <span>Back to Lobby</span>
-                        </Button>
+                        <Link href="/">
+                            <Button className="flex gap-3 items-center bg-blue-500 hover:bg-blue-600 text-white px-8 py-7 rounded-2xl font-black text-lg shadow-lg shadow-blue-200 hover:scale-105 transition-all uppercase tracking-tight cursor-pointer">
+                                <Home size={20} />
+                                <span>Back to Lobby</span>
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>

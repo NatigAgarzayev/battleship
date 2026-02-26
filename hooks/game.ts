@@ -1,5 +1,6 @@
 import { makeBotMove } from "@/lib/botAI"
 import generateBotShips from "@/lib/generateShips"
+import { getShipBorderCells } from "@/lib/getShipBorderCells"
 import { supabase } from "@/lib/supabase"
 import { IShipsLocation } from "@/types/game"
 
@@ -183,10 +184,9 @@ export const chooseGameMode = async (gameCode: string, gameType: 'pvp' | 'bot') 
 
 export const makeAttack = async (
     gameCode: string,
-    attackingPlayerId: string,
+    playerId: string,
     targetCell: string
-) => {
-    // Get current game state
+): Promise<{ isHit: boolean; shipSunk: boolean; gameWon: boolean }> => {
     const { data: game, error: fetchError } = await supabase
         .from('games')
         .select('*')
@@ -197,74 +197,91 @@ export const makeAttack = async (
         throw new Error('Game not found')
     }
 
-    // Verify it's the attacker's turn
-    if (game.current_turn !== attackingPlayerId) {
-        throw new Error('Not your turn!')
+    // Determine which player is attacking
+    const isPlayer1 = playerId === game.player1_id
+    const attackerShots = isPlayer1 ? game.player1_shots : game.player2_shots
+    const defenderShips = isPlayer1 ? game.player2_ships : game.player1_ships
+
+    // Check if cell was already attacked
+    if (attackerShots.includes(targetCell)) {
+        throw new Error('Cell already attacked')
     }
 
-    // Verify game is active
-    if (game.status !== 'active') {
-        throw new Error('Game is not active')
-    }
-
-    const isPlayer1 = game.player1_id === attackingPlayerId
-
-    // Get the correct shots array
-    const shotsKey = isPlayer1 ? 'player1_shots' : 'player2_shots'
-    const currentShots = game[shotsKey] || []
-
-    // Check if this cell was already attacked
-    if (currentShots.includes(targetCell)) {
-        throw new Error('Cell already attacked!')
-    }
-
-    // Add new shot
-    const updatedShots = [...currentShots, targetCell]
-
-    // Switch turn to other player
-    const nextTurn = isPlayer1 ? game.player2_id : game.player1_id
-
-    // Check if this shot hit a ship
-    const opponentShipsKey = isPlayer1 ? 'player2_ships' : 'player1_ships'
-    const opponentShips: IShipsLocation[] = game[opponentShipsKey] || []
-
-    const isHit = opponentShips.some(ship =>
+    // Check if it's a hit
+    const isHit = defenderShips.some((ship: IShipsLocation) =>
         ship.ship_coordinates.includes(targetCell)
     )
 
-    console.log(`Attack on ${targetCell}: ${isHit ? 'HIT!' : 'MISS'}`)
+    // Add the shot
+    const updatedShots = [...attackerShots, targetCell]
 
-    // Check if game is won (all opponent ships are destroyed)
-    const allOpponentCells = opponentShips.flatMap(ship => ship.ship_coordinates)
-    const allHits = updatedShots.filter(shot => allOpponentCells.includes(shot))
-    const gameWon = allHits.length === allOpponentCells.length
+    // Check if a ship was sunk
+    let shipSunk = false
+    let borderCells: string[] = []
 
-    const updates: any = {
-        [shotsKey]: updatedShots,
-        current_turn: nextTurn,
-        turn_started_at: new Date().toISOString(), // Update turn start time
-        updated_at: new Date().toISOString()
+    if (isHit) {
+        const hitShip = defenderShips.find((ship: IShipsLocation) =>
+            ship.ship_coordinates.includes(targetCell)
+        )
+
+        if (hitShip) {
+            const allHit = hitShip.ship_coordinates.every((coord: string) =>
+                updatedShots.includes(coord)
+            )
+
+            if (allHit) {
+                shipSunk = true
+                // Get border cells for the sunk ship
+                borderCells = getShipBorderCells(hitShip.ship_coordinates)
+
+                // Add border cells to shots (filter out already shot cells)
+                borderCells.forEach(cell => {
+                    if (!updatedShots.includes(cell)) {
+                        updatedShots.push(cell)
+                    }
+                })
+
+                console.log(`🚢 Ship sunk! Marking ${borderCells.length} border cells`)
+            }
+        }
     }
 
-    // If game is won, update status
-    if (gameWon) {
-        updates.status = 'finished'
-        updates.winner = attackingPlayerId
-        updates.current_turn = null
-        updates.turn_started_at = null // Clear turn timestamp when game ends
-        console.log('🎉 Game won by', attackingPlayerId)
-    }
+    // Check if all ships are sunk (game won)
+    const allShipsSunk = defenderShips.every((ship: IShipsLocation) =>
+        ship.ship_coordinates.every((coord: string) => updatedShots.includes(coord))
+    )
 
-    const { data, error } = await supabase
+    // Update the game
+    const updateData = isPlayer1
+        ? {
+            player1_shots: updatedShots,
+            current_turn: allShipsSunk ? null : game.player2_id,
+            status: allShipsSunk ? 'finished' : 'active',
+            winner: allShipsSunk ? game.player1_id : null,
+            turn_started_at: allShipsSunk ? null : new Date().toISOString()
+        }
+        : {
+            player2_shots: updatedShots,
+            current_turn: allShipsSunk ? null : game.player1_id,
+            status: allShipsSunk ? 'finished' : 'active',
+            winner: allShipsSunk ? game.player2_id : null,
+            turn_started_at: allShipsSunk ? null : new Date().toISOString()
+        }
+
+    const { error: updateError } = await supabase
         .from('games')
-        .update(updates)
+        .update(updateData)
         .eq('game_code', gameCode)
-        .select()
-        .single()
 
-    if (error) throw error
+    if (updateError) {
+        throw new Error('Failed to update game')
+    }
 
-    return { success: true, isHit, gameWon, data }
+    return {
+        isHit,
+        shipSunk,
+        gameWon: allShipsSunk
+    }
 }
 
 export const makeRandomAttack = async (gameCode: string, attackingPlayerId: string) => {
