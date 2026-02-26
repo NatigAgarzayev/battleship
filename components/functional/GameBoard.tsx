@@ -27,9 +27,6 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     const [currentPlayerId, setCurrentPlayerId] = useState<string>('')
     const [timeLeft, setTimeLeft] = useState(TURN_TIME_LIMIT)
     const [hasAutoAttacked, setHasAutoAttacked] = useState(false)
-    const [opponentDisconnected, setOpponentDisconnected] = useState(false)
-    const [disconnectDuration, setDisconnectDuration] = useState(0)
-
     const router = useRouter()
 
     const presenceIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -91,8 +88,6 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
     // Check opponent connection status
     useEffect(() => {
         if (!currentPlayerId || gameState.status !== 'active') {
-            setOpponentDisconnected(false)
-            setDisconnectDuration(0)
             return
         }
 
@@ -101,9 +96,6 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                 gameState.game_code,
                 currentPlayerId
             )
-
-            setOpponentDisconnected(!isConnected)
-            setDisconnectDuration(disconnectedFor)
 
             // Auto-forfeit if opponent disconnected for 30+ seconds
             if (!isConnected && disconnectedFor >= DISCONNECT_THRESHOLD) {
