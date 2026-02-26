@@ -383,7 +383,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
                         {/* Your Board - Left */}
                         <div>
                             <h2 className="text-xl font-bold text-slate-900 mb-4">
-                                Your Waters
+                                Your Waters - {isPlayer1 ? gameState.player1_name || "Admiral" : gameState.player2_name || 'Guest'}
                             </h2>
                             {isPlayer1 ? (
                                 <GameGrid
@@ -414,7 +414,7 @@ export default function GameBoard({ gameState }: { gameState: IGameData }) {
 
                         {/* Opponent's Board - Right */}
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-4">Enemy Waters</h2>
+                            <h2 className="text-xl font-bold text-slate-900 mb-4">Enemy Waters - {isPlayer1 ? gameState.player2_name || 'Guest' : gameState.player1_name || 'Guest'}</h2>
                             {isPlayer1 ? (
                                 <GameGrid
                                     gameCode={gameState.game_code}

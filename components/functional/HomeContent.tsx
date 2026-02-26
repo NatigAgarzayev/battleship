@@ -52,19 +52,32 @@ export default function HomeContent() {
         }
     }
 
+    const extractGameCode = (input: string): string => {
+        const trimmed = input.trim()
+        try {
+            const url = new URL(trimmed)
+            const invited = url.searchParams.get('invited')
+            if (invited) return invited.toUpperCase()
+            const segments = url.pathname.split('/').filter(Boolean)
+            return segments[segments.length - 1]?.toUpperCase() ?? ''
+        } catch {
+            return trimmed.toUpperCase()
+        }
+    }
+
     const handleJoinRoom = async (invitedCode?: string) => {
         try {
             setJoiningRoom(true)
 
             const codeToJoin = invitedCode || roomCode
-            const trimmedCode = codeToJoin.trim().toUpperCase()
+            const trimmedCode = extractGameCode(codeToJoin)
 
             if (trimmedCode.length === 0) {
                 gameToasts.invalidGameCode()
                 return
             }
 
-            const joinedRoom = await joinGame(trimmedCode, nickname || undefined)
+            const joinedRoom = await joinGame(trimmedCode, nickname || "Guest")
 
             if (!joinedRoom) {
                 gameToasts.gameNotFound()
@@ -213,10 +226,9 @@ export default function HomeContent() {
                                             </DialogHeader>
                                             <div className="space-y-4">
                                                 <Input
-                                                    placeholder="Enter 6-digit code"
+                                                    placeholder="Enter code or paste invite link"
                                                     value={roomCode}
-                                                    onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                                                    maxLength={6}
+                                                    onChange={(e) => setRoomCode(extractGameCode(e.target.value))}
                                                     className="w-full px-4 py-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-sky-500 font-bold text-center text-2xl tracking-widest uppercase"
                                                 />
                                                 <Button
