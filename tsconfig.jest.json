@@ -1,0 +1,14 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "jsx": "react",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "module": "commonjs"
+    },
+    "include": [
+        "**/__tests__/**/*",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+    ]
+}
